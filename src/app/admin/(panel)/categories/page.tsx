@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { categories, products } from "@/db/schema";
+import { categories } from "@/db/schema";
 import { Flash } from "@/components/flash";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,11 @@ export default async function CategoriesPage({ searchParams }: { searchParams: P
       id: categories.id,
       name: categories.name,
       slug: categories.slug,
-      n: sql<number>`(select count(*)::int from ${products} where ${products.categoryId} = ${categories.id})`,
-      published: sql<number>`(select count(*)::int from ${products} where ${products.categoryId} = ${categories.id} and ${products.published} = true)`,
+      n: sql<number>`(select count(*)::int from "products" as p where p."category_id" = "categories"."id")`,
+      published: sql<number>`(select count(*)::int from "products" as p where p."category_id" = "categories"."id" and p."published" = true)`,
     })
     .from(categories)
     .orderBy(asc(categories.position), asc(categories.name));
-  void eq;
   return (
     <div className="max-w-3xl">
       <h1 className="font-serif text-3xl">Categories</h1>

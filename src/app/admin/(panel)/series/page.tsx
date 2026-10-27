@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { asc, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { products, series } from "@/db/schema";
+import { series } from "@/db/schema";
 import { Flash } from "@/components/flash";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -18,7 +18,7 @@ export default async function SeriesAdminPage({ searchParams }: { searchParams: 
       title: series.title,
       slug: series.slug,
       text: series.text,
-      n: sql<number>`(select count(*)::int from ${products} where ${products.seriesId} = ${series.id})`,
+      n: sql<number>`(select count(*)::int from "products" as p where p."series_id" = "series"."id")`,
     })
     .from(series)
     .orderBy(asc(series.position), asc(series.title));

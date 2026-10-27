@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useId, useMemo, useRef, useState } from "react";
-import { addToCart, useCart, lineKey, type CartOption } from "@/lib/cart";
+import { addToCart, type CartOption } from "@/lib/cart";
 import { normalizePersonalization, validatePersonalization } from "@/lib/pricing";
 import { formatMoney, cn } from "@/lib/utils";
 import { store } from "@/config/store";
@@ -31,7 +31,6 @@ type Msg = { kind: "error" | "success"; text: string } | null;
 
 export function WorkPurchase(p: Props) {
   const uid = useId();
-  const cart = useCart();
   const [selected, setSelected] = useState<Record<string, string>>(() => {
     const init: Record<string, string> = {};
     for (const o of p.options) {
@@ -113,7 +112,6 @@ export function WorkPurchase(p: Props) {
       /* offline: fall through with page values; checkout re-checks everything */
     }
     setBusy(false);
-    const have = cart.lines.find((l) => l.key === lineKey(p.productId, options, personalization))?.quantity ?? 0;
     const res = addToCart(
       {
         productId: p.productId,
@@ -131,7 +129,6 @@ export function WorkPurchase(p: Props) {
       setMsg({ kind: "error", text: res.message });
       return;
     }
-    void have;
     setMsg({
       kind: "success",
       text: `Added to your cart: ${p.name}${options.length ? " (" + options.map((o) => o.valueLabel).join(", ") + ")" : ""}${qty > 1 ? ` × ${qty}` : ""}.`,

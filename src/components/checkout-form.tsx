@@ -61,7 +61,7 @@ export function CheckoutForm() {
   const [banner, setBanner] = useState<string | null>(null);
   const [lineIssues, setLineIssues] = useState<Record<string, { message: string; maxQuantity?: number }>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<string | null>(null);
   const submittingRef = useRef(false);
   const summaryRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +73,16 @@ export function CheckoutForm() {
 
   if (!mounted) return <p className="py-16 text-muted-foreground" aria-busy="true">Loading checkout…</p>;
 
-  if (cart.lines.length === 0 && !done) {
+  if (done) {
+    return (
+      <p role="status" className="py-16 text-center text-lg" data-testid="order-placed">
+        Your demo order is placed. Taking you to your confirmation…{" "}
+        <Link href={`/order/${done}`} className="underline underline-offset-4">View it now</Link>
+      </p>
+    );
+  }
+
+  if (cart.lines.length === 0) {
     return (
       <div className="py-12 text-center" data-testid="checkout-empty">
         <p className="font-serif text-2xl">There&apos;s nothing to check out yet</p>
@@ -128,10 +137,11 @@ export function CheckoutForm() {
       });
       const data = await res.json();
       if (data.status === "created") {
-        setDone(true);
+        // Clear the cart right away (a refresh must not leave it behind); the page shows a short
+        // "placed" message instead of an empty summary while it moves to the confirmation.
+        setDone(data.reference);
+        clearCart();
         router.push(`/order/${data.reference}`);
-        // Clear after navigation starts so this page never shows an empty-bag state.
-        setTimeout(() => clearCart(), 50);
         return;
       }
       if (data.status === "invalid") {

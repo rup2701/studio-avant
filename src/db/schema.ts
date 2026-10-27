@@ -8,13 +8,17 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+
+/** Timestamps are stored as UTC wall-clock time, which is how the driver reads them back. */
+const utcNow = sql`timezone('utc', now())`;
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   position: integer("position").notNull().default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 /** Old category slugs, so shopper URLs stay valid after a rename. */
@@ -32,7 +36,7 @@ export const series = pgTable("series", {
   slug: text("slug").notNull().unique(),
   text: text("text").notNull().default(""),
   position: integer("position").notNull().default(0),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 /** A work and a product are the same record. */
@@ -58,8 +62,8 @@ export const products = pgTable("products", {
   isSample: boolean("is_sample").notNull().default(false),
   personalizationEnabled: boolean("personalization_enabled").notNull().default(false),
   personalizationMaxLength: integer("personalization_max_length").notNull().default(40),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
+  updatedAt: timestamp("updated_at").notNull().default(utcNow),
 });
 
 export const productImages = pgTable("product_images", {
@@ -113,7 +117,7 @@ export const orders = pgTable("orders", {
   subtotalCents: integer("subtotal_cents").notNull(),
   shippingCents: integer("shipping_cents").notNull(),
   totalCents: integer("total_cents").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 /** Snapshot of what was bought: editing or deleting a product never changes it. */
@@ -144,7 +148,7 @@ export const exhibitions = pgTable("exhibitions", {
   /** exhibition | award | press */
   kind: text("kind").notNull().default("exhibition"),
   text: text("text").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 export const commissionInquiries = pgTable("commission_inquiries", {
@@ -154,25 +158,25 @@ export const commissionInquiries = pgTable("commission_inquiries", {
   idea: text("idea").notNull(),
   roughSize: text("rough_size").notNull().default(""),
   budget: text("budget").notNull().default(""),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 export const emailSignups = pgTable("email_signups", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 export const ownerSessions = pgTable("owner_sessions", {
   tokenHash: text("token_hash").primaryKey(),
   expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });
 
 export const loginAttempts = pgTable("login_attempts", {
   id: serial("id").primaryKey(),
   ip: text("ip").notNull(),
-  at: timestamp("at").notNull().defaultNow(),
+  at: timestamp("at").notNull().default(utcNow),
 });
 
 /** Plain-words log of things the owner should know (failed checkouts, etc.). */
@@ -180,5 +184,5 @@ export const systemEvents = pgTable("system_events", {
   id: serial("id").primaryKey(),
   kind: text("kind").notNull(),
   message: text("message").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().default(utcNow),
 });

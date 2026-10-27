@@ -80,7 +80,10 @@ export function PhotoManager(p: { productId: string; productName: string; images
       items.push({ id, file, progress: 0, status: error ? "error" : "uploading", error, warnings: [] });
     }
     setQueue((q) => [...q, ...items]);
-    for (const it of items) if (it.status === "uploading") void run(it);
+    // One at a time, so photo positions are assigned in order.
+    void (async () => {
+      for (const it of items) if (it.status === "uploading") await run(it);
+    })();
   }
 
   async function act(fn: () => Promise<{ ok: boolean; message?: string }>) {
