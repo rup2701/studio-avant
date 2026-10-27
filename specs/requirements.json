@@ -1,0 +1,362 @@
+{
+  "schema_version": "1.0",
+  "product": "Handmade Goods Store",
+  "currency": "USD",
+  "features": [
+    {
+      "id": "catalog-browse",
+      "name": "Browse product catalog",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Allow shoppers to discover and browse a curated collection of handmade products.",
+      "acceptance_criteria": [
+        "The home page introduces the store and provides a clear path to browse products.",
+        "The catalog displays multiple products with an image, name, price, and short description or category.",
+        "Selecting a product opens its corresponding detail page.",
+        "If category filtering is provided, shoppers can clear the filter to return to the full catalog.",
+        "Unknown product URLs display a helpful not-found state with a path back to shopping."
+      ],
+      "verification": [
+        "Navigate from the home page to the catalog.",
+        "Confirm multiple product cards display meaningful content.",
+        "Open a product and verify its details correspond to the selected card.",
+        "Open an invalid product URL and verify the not-found state."
+      ]
+    },
+    {
+      "id": "product-details",
+      "name": "View and configure products",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Allow shoppers to understand product details and select valid options before adding products to the cart.",
+      "acceptance_criteria": [
+        "A product detail page displays its name, price, description, images, and availability.",
+        "Products with variants expose their relevant options, such as size, color, or finish.",
+        "Selecting a variant updates the displayed price when that variant has a price adjustment.",
+        "Products supporting personalization display an optional text field with a clear character limit or validation rule.",
+        "Required options must be selected before a product can be added to the cart.",
+        "Unavailable variants cannot be added to the cart, and their unavailable state is communicated clearly.",
+        "The selected variant and personalization are preserved when the product is added to the cart.",
+        "The page remains usable on narrow mobile screens without horizontal page overflow."
+      ],
+      "verification": [
+        "Select multiple variants and check their displayed prices.",
+        "Test a product that supports personalization and one that does not.",
+        "Attempt to add a product without selecting a required option.",
+        "Attempt to add an unavailable variant.",
+        "Verify that the chosen configuration appears correctly in the cart."
+      ]
+    },
+    {
+      "id": "shopping-cart",
+      "name": "Manage shopping cart",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Allow shoppers to review configured products and modify their cart before checkout.",
+      "acceptance_criteria": [
+        "Shoppers can add valid product configurations to the cart.",
+        "Each cart item displays its product name, selected options, applicable personalization, unit price, quantity, and line total.",
+        "The line total equals unit price multiplied by quantity.",
+        "The subtotal equals the sum of all line totals.",
+        "Shoppers can change quantities and remove items.",
+        "Quantity cannot be reduced below one through the quantity control; removing an item is a separate action.",
+        "Different variants or personalization values remain distinguishable as separate configurations.",
+        "Identical configurations may combine into one cart line with an increased quantity.",
+        "An empty cart displays a helpful message and a path back to the catalog.",
+        "Cart contents persist during navigation, and browser-local persistence is acceptable."
+      ],
+      "verification": [
+        "Add a product and confirm it appears in the cart.",
+        "Add a second configuration of the same product and verify the configurations remain distinguishable.",
+        "Change a quantity and verify the line total and subtotal update.",
+        "Remove an item and verify the cart count and subtotal update.",
+        "Navigate away from the cart and return to confirm the cart state is preserved."
+      ]
+    },
+    {
+      "id": "demo-checkout",
+      "name": "Complete simulated checkout",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Demonstrate a complete order journey without collecting payment information or processing a real payment.",
+      "acceptance_criteria": [
+        "Checkout is unavailable when the cart is empty.",
+        "The checkout form collects full name, email, address, city, state or region, postal code, and country.",
+        "Required fields and email format are validated with clear, actionable messages.",
+        "Form values remain available when validation fails.",
+        "The checkout summary displays the ordered items and internally consistent totals.",
+        "The interface clearly states that checkout is simulated and no payment will be collected.",
+        "The checkout does not request payment-card details or make real payment API calls.",
+        "Submitting valid details creates a demo order and displays an order reference and summary.",
+        "The cart is cleared after successful demo order creation.",
+        "Revisiting an order confirmation does not create a duplicate order."
+      ],
+      "verification": [
+        "Attempt to access checkout with an empty cart.",
+        "Submit incomplete details and verify the validation messages.",
+        "Complete checkout with valid details and verify the order confirmation.",
+        "Verify the confirmation matches the cart contents and totals.",
+        "Confirm the cart is cleared after successful submission.",
+        "Inspect the implementation for payment-card fields and real payment calls."
+      ]
+    },
+    {
+      "id": "order-confirmation",
+      "name": "Display order confirmation",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Show a clear summary of the simulated order after checkout.",
+      "acceptance_criteria": [
+        "The confirmation page displays a unique order reference.",
+        "The page displays ordered products, selected options, personalization where applicable, quantities, and totals.",
+        "The page clearly identifies the order as a demo.",
+        "The page provides a path back to shopping.",
+        "Unknown order references display a helpful not-found state.",
+        "Refreshing a valid confirmation does not create another order."
+      ],
+      "verification": [
+        "Complete a demo order and inspect its confirmation.",
+        "Refresh the confirmation page and verify the order remains consistent.",
+        "Open an invalid order reference and verify the not-found state."
+      ]
+    },
+    {
+      "id": "responsive-accessible-ui",
+      "name": "Provide a polished, accessible interface",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Deliver a visually coherent storefront that works across common screen sizes and supports basic accessibility.",
+      "acceptance_criteria": [
+        "The layout works at mobile, tablet, and desktop widths.",
+        "Navigation and primary actions are keyboard accessible.",
+        "Form fields have visible labels or accessible names.",
+        "Interactive elements have visible focus states.",
+        "Text and controls have readable contrast and reasonable sizing.",
+        "Informative images have meaningful alternative text; decorative images use empty alternative text.",
+        "Important state changes, such as cart updates and form errors, are communicated clearly.",
+        "The visual design feels consistent across the home, catalog, product, cart, checkout, and confirmation pages."
+      ],
+      "verification": [
+        "Inspect the main pages at representative mobile and desktop widths.",
+        "Navigate the primary shopping journey using the keyboard.",
+        "Check form labels, focus states, image alternative text, and validation feedback.",
+        "Review consistency of typography, spacing, color, and interactive states."
+      ]
+    },
+    {
+      "id": "returns-policy",
+      "name": "Publish a returns and refunds policy",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Give shoppers a clear, findable explanation of how returns, exchanges and refunds work before and after they buy.",
+      "acceptance_criteria": [
+        "A dedicated returns and refunds page exists and is reachable from the site footer on every page.",
+        "The page states the return window, item condition requirements, how to start a return, refund method and timing, who pays return shipping, and how damaged or incorrect items are handled.",
+        "The page states that personalized items are final sale unless they arrive damaged or incorrect.",
+        "Products that support personalization tell shoppers, near the personalization field, that personalized pieces are final sale.",
+        "The cart or checkout links to the returns policy.",
+        "The page clearly states that this is a sample policy for a demo store and that no real returns are processed."
+      ],
+      "verification": [
+        "Open the returns page from the footer.",
+        "Confirm each policy element is present.",
+        "Confirm the final-sale note appears on a personalizable product and not on others.",
+        "Follow the returns link from the cart."
+      ]
+    },
+    {
+      "id": "site-footer",
+      "name": "Provide a footer with help, contact and payment information",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Every page ends with a consistent footer and subfooter that lets shoppers find help, contact the studio and see which payment methods the store accepts.",
+      "acceptance_criteria": [
+        "Every page shows the same footer with links to Help & FAQ, Returns & refunds and Contact us.",
+        "A subfooter lists accepted payment methods as text labels with accessible names; no third-party card-brand logos are reproduced.",
+        "The subfooter makes clear that payment methods are shown for a demo and that checkout does not collect payment.",
+        "Help & FAQ and Contact us links lead to real pages, not placeholders.",
+        "The Help page answers common questions about shipping, returns, personalization, care and the demo checkout.",
+        "The Contact page lists ways to reach the studio and expected response time, and does not submit or transmit messages.",
+        "The footer and subfooter work at mobile widths without horizontal overflow."
+      ],
+      "verification": [
+        "Check the footer on home, product, cart and checkout pages.",
+        "Follow each footer link and confirm the destination page loads.",
+        "Confirm payment methods have accessible text and no brand logos.",
+        "Inspect the footer at 375 px wide."
+      ]
+    },
+    {
+      "id": "full-width-layout",
+      "name": "Browsing pages use the full width of the screen",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Home, catalog and product pages, the header and the footer fill the browser width (to a very large maximum) instead of sitting in a narrow centered column. Reading-heavy pages (cart, checkout, policies, help, contact, order confirmation) keep a narrower column so lines stay readable.",
+      "acceptance_criteria": [
+        "At 1440 px wide, the catalog grid spans at least 90% of the viewport.",
+        "The catalog shows more products per row as the screen widens (2, 3, 4, 5, then 6 columns).",
+        "Header, footer and page content share the same left and right edges on browsing pages.",
+        "Text-heavy pages keep a readable line length.",
+        "No horizontal overflow at 375 px."
+      ],
+      "verification": [
+        "Measure the catalog grid width against the viewport at 1440 px.",
+        "Count columns at several widths.",
+        "Check the policy and checkout pages are still narrower than the catalog."
+      ]
+    },
+    {
+      "id": "image-first-cards",
+      "name": "Product cards put the image first",
+      "priority": "must-have",
+      "status": "approved",
+      "description": "Product cards give the picture as much of the card as possible: no frame or padding around the image, tight gaps between cards, and a compact text block (category, name, one-line tagline, price).",
+      "acceptance_criteria": [
+        "The product image fills the full width of its card with no border or inner padding.",
+        "Image area is at least 70% of the card's height.",
+        "Gaps between cards are no more than 16 px on desktop.",
+        "Cards remain a single click target with one keyboard tab stop."
+      ],
+      "verification": [
+        "Measure image height against card height on the catalog page.",
+        "Measure the gap between cards.",
+        "Tab through the catalog and confirm one stop per card."
+      ]
+    },
+    {
+      "id": "owner-sign-in",
+      "name": "Owner signs in to the owner area",
+      "priority": "must-have",
+      "status": "proposed",
+      "description": "The store owner signs in to a private owner area at /admin. Shoppers have no accounts; this is the only sign-in.",
+      "acceptance_criteria": [
+        "Every /admin page and every owner API route requires a signed-in owner; anything else redirects to sign-in or returns 401.",
+        "The owner's email and a password hash come from environment configuration. No credentials appear in code or the repo.",
+        "A wrong email or password shows one generic message that does not say which part was wrong.",
+        "After 5 failed attempts from one address within 15 minutes, further attempts are refused for 15 minutes with a clear message.",
+        "Sessions last 7 days and sign-out ends the session immediately.",
+        "No link to the owner area appears anywhere in the shopper experience."
+      ],
+      "verification": [
+        "Open /admin signed out and confirm the redirect.",
+        "Sign in with a wrong password, then the right one.",
+        "Call an owner API route without a session and confirm 401.",
+        "Sign out and confirm /admin is protected again."
+      ]
+    },
+    {
+      "id": "owner-product-list",
+      "name": "Owner sees all products",
+      "priority": "must-have",
+      "status": "proposed",
+      "description": "A list of every product, including drafts, so the owner can find and manage anything quickly.",
+      "acceptance_criteria": [
+        "The list shows each product's cover photo, name, category, price, stock and status (draft or published).",
+        "The owner can search by name and filter by category and by status.",
+        "An empty store shows a clear first step: add your first product.",
+        "Each row opens that product for editing, and a visible button adds a new product."
+      ],
+      "verification": [
+        "Open the list with published and draft products and check every column.",
+        "Search for a product by part of its name.",
+        "Filter by a category and by draft status.",
+        "View the empty state on a store with no products."
+      ]
+    },
+    {
+      "id": "owner-product-form",
+      "name": "Owner creates and edits a product",
+      "priority": "must-have",
+      "status": "proposed",
+      "description": "One form creates a new product or edits an existing one, including its options.",
+      "acceptance_criteria": [
+        "Fields: name (required, 80 characters at most), slug, description (2000 at most), price in USD (greater than 0, two decimals), category (chosen from the store's categories), stock (whole number, 0 or more), status.",
+        "The slug is generated from the name, uses lowercase letters, numbers and hyphens, and must be unique. A duplicate is refused with a message that suggests an alternative.",
+        "The owner can add options (such as size or glaze) with values and optional price adjustments, mark an option required, and choose a default value.",
+        "Validation messages appear next to the field that caused them, and what the owner typed is kept.",
+        "Saving confirms what happened and says what comes next (for example: add photos, or publish).",
+        "Leaving the form with unsaved changes asks for confirmation.",
+        "Editing a product never changes orders already placed; orders keep the name, options and price they were bought at."
+      ],
+      "verification": [
+        "Create a product with valid values and see it in the list.",
+        "Submit with a missing name, a zero price and a duplicate slug.",
+        "Add a required option with a default and confirm the shopper page honors it.",
+        "Change a price and confirm an earlier order still shows the old price."
+      ]
+    },
+    {
+      "id": "owner-photo-upload",
+      "name": "Owner uploads product photos",
+      "priority": "must-have",
+      "status": "proposed",
+      "description": "Photos are added to a product through the owner area and shown to shoppers on cards and product pages.",
+      "acceptance_criteria": [
+        "Up to 8 photos per product. JPEG, PNG and WebP only, 5 MB at most each. Anything else is refused with a clear message naming the problem.",
+        "Each photo has alt text, defaulting to the product name, which the owner can edit.",
+        "The first photo is the cover. The owner can reorder photos and remove one.",
+        "A photo under 800 pixels wide is accepted with a visible warning that it may look soft.",
+        "Upload shows progress, and a failed upload says so and can be retried without losing the form.",
+        "Storage sits behind a small adapter with two implementations: local disk for development and object storage for deployed stores. The deployed build must not write uploads to the server's own filesystem.",
+        "Shoppers see the cover on catalog cards and the full set on the product page."
+      ],
+      "verification": [
+        "Upload three photos and set the second as cover.",
+        "Try a PDF and a 12 MB image.",
+        "Upload an image 500 pixels wide and confirm the warning.",
+        "Reload and confirm photos persist.",
+        "Confirm the deployed configuration refuses to start without object storage configured."
+      ]
+    },
+    {
+      "id": "owner-publish-and-stock",
+      "name": "Owner publishes products and sets stock",
+      "priority": "must-have",
+      "status": "proposed",
+      "description": "Draft products stay private until published, and stock controls what shoppers can buy.",
+      "acceptance_criteria": [
+        "Only published products appear to shoppers. A draft's URL shows the standard not-found page to anyone but the owner.",
+        "A product with stock 0 shows 'Sold out' and cannot be added to the cart.",
+        "Checkout re-checks stock and publish status, and tells the shopper which item changed and what they can do.",
+        "Publishing a product with no photo or no price is refused with a clear reason."
+      ],
+      "verification": [
+        "Publish and unpublish a product and check the shopper view.",
+        "Set stock to 0 and try to add it.",
+        "Put an item in a cart, unpublish it, then check out.",
+        "Try to publish a product with no photo."
+      ]
+    },
+    {
+      "id": "owner-categories",
+      "name": "Owner manages categories",
+      "priority": "must-have",
+      "status": "proposed",
+      "description": "The store's categories come from the brief and the owner can change them. They drive the catalog filter and the home page 'shop by' section.",
+      "acceptance_criteria": [
+        "The owner can add, rename and reorder categories.",
+        "A category that still has products cannot be deleted. The message says how many products must move first.",
+        "A category with no published products is hidden from shoppers.",
+        "Renaming a category updates every product in it and the shopper URLs stay valid (a redirect from the old name)."
+      ],
+      "verification": [
+        "Add a category and assign a product to it.",
+        "Try to delete a category with products.",
+        "Rename a category and open its old URL.",
+        "Confirm an empty category is hidden from shoppers."
+      ]
+    }
+  ],
+  "out_of_scope": [
+    "Shopper accounts and sign-in (the owner area has its own sign-in)",
+    "Order management, policy editing and analytics in the owner area (planned later)",
+    "Real payment processing or collection of payment-card information",
+    "Real shipping-rate calculation",
+    "Real tax calculation",
+    "External inventory synchronization",
+    "Production order storage",
+    "Order email notifications",
+    "Analytics integrations",
+    "Multi-seller marketplace functionality"
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Brief for a fictional painter's site that works like a physical gallery: one catalog of works, shown as a portfolio, where every available work can be bought. There is no separate shop. Tests whether the brief alone can change the home page and shape of a store.",
+  "store": {
+    "name": "Studio Avant",
+    "sells": "Original paintings and limited prints by one painter",
+    "town": null,
+    "online_only": true,
+    "brand_words": [
+      "quiet",
+      "considered",
+      "personal"
+    ],
+    "artist": {
+      "name": "Sample Artist",
+      "note": "Fictional. The owner replaces the name, statement, bio and portrait in the owner area."
+    }
+  },
+  "categories": [
+    "Original paintings",
+    "Prints"
+  ],
+  "catalog": {
+    "note": "There is one catalog. A work is a product: the same record serves the portfolio and the store, so a work can never be Sold in one place and Available in another. There is no separate Shop section.",
+    "work_fields": [
+      "title",
+      "year",
+      "medium",
+      "size in inches",
+      "series (optional)",
+      "images",
+      "short note (optional)",
+      "price (not needed when not for sale)",
+      "status"
+    ],
+    "status_values": [
+      "Available (can be bought from its page)",
+      "Sold (stays visible, cannot be bought, no price shown)",
+      "Private collection (stays visible, cannot be bought)",
+      "Not for sale (stays visible, cannot be bought)"
+    ],
+    "originals": "An original is one of a kind: stock of one. Once bought it becomes Sold everywhere, and it cannot be bought twice, even by two shoppers at the same moment.",
+    "prints": "A print has a required size option (for example 12x16 and 18x24 inches) and a paper option, priced by option. A print may say which original it comes from and link to it."
+  },
+  "sample_catalog": {
+    "mode": "generate_sample",
+    "count": 12,
+    "rules": [
+      "Products are samples, labeled as samples in the owner area.",
+      "Eight original paintings: three Available, three Sold, one in a Private collection, one Not for sale. Prices between $400 and $3,200.",
+      "Four prints, all Available, each with size and paper options. At least two come from one of the originals. Prices between $35 and $180.",
+      "Two series: Low Tide and Orchard Light. Some works belong to no series."
+    ]
+  },
+  "imagery": {
+    "source": "owner_uploads",
+    "rules": [
+      "No stock or generated photos are fetched or invented.",
+      "Works and the portrait start without photos and show a neutral placeholder.",
+      "The owner adds images through the owner area."
+    ]
+  },
+  "series": {
+    "note": "A series groups works and is the same thing as a collection in the store. It has a title and a short text, and its own page listing its works.",
+    "sample_series": [
+      "Low Tide",
+      "Orchard Light"
+    ]
+  },
+  "pages": {
+    "about": "A page with the artist's statement, a short bio and a portrait. Owner editable.",
+    "exhibitions_and_press": "A plain list by year: exhibitions, awards, press. Owner can add, edit and remove entries.",
+    "commissions": {
+      "page": "Explains how commissions work (sample wording) and has an inquiry form: name, email, what they have in mind, rough size and budget range.",
+      "behaviour": "The inquiry is stored and the visitor sees a thank-you message. Nothing is sent. The owner sees the inquiries in the owner area.",
+      "note": "This is a form on a public page. The specs say the contact page has no form; the brief wins for this page."
+    },
+    "work_page": "A work's page has the images large with the details beside them (title, year, medium, size, series, note). For an Available work it shows the price, options if any, quantity and Add to cart. For the other statuses it shows the status instead and no buy button. Previous and next links move within the series, or through all works.",
+    "series_page": "The series title and text, then its works in the same grid as the home page."
+  },
+  "look": {
+    "style": "gallery",
+    "tone": "quiet",
+    "accent": null,
+    "accent_note": "Choose one restrained accent that suits a painter's site and record it. Mostly off-white and near-black, with generous white space.",
+    "layout": {
+      "width": "full",
+      "work_cards": "image-first, uncropped where possible, title and year underneath",
+      "reading_pages": "narrow column"
+    },
+    "header": {
+      "logo": "text wordmark, left",
+      "menu": "Work (this is the home page), About, Exhibitions, Commissions",
+      "right": "bag with item count",
+      "mobile": "menu collapses behind a button"
+    },
+    "home": {
+      "note": "The home page is the portfolio. There is no hero, no marketing sections and no Shop link: the work comes first.",
+      "sections_in_order": [
+        "A one-line intro: the artist's name and a short line about the work, owner editable",
+        "Filters: 'All', one choice per series, and 'Available', which filter the grid without leaving the page",
+        "The work grid: every published work. Each shows image, title and year, a small status mark ('Available' with the price, or 'Sold'), and links to its work page.",
+        "Email signup strip: one email field and a button; store the address and show a thank-you message; send nothing",
+        "Footer"
+      ],
+      "owner_editable": [
+        "the intro line",
+        "which works are published and their order"
+      ]
+    },
+    "footer": {
+      "columns": [
+        "Help (Help & FAQ, Returns & refunds)",
+        "Studio (About, Exhibitions, Commissions, Contact)",
+        "Follow (placeholder links, owner editable)"
+      ]
+    }
+  },
+  "orders": {
+    "fulfilment": "ship",
+    "currency": "USD",
+    "shipping": {
+      "mode": "demo_flat_rate",
+      "flat_cents": 1200,
+      "free_over_cents": 30000,
+      "label": "Always labeled as an estimate"
+    },
+    "tax": "not shown",
+    "max_quantity_per_line": 10,
+    "countries": [
+      "United States",
+      "Canada",
+      "United Kingdom"
+    ],
+    "order_reference": "A short, unique, human-readable code shown on the confirmation page. No lookup page and no email in this version."
+  },
+  "policies": {
+    "returns_window_days": 14,
+    "note": "Sample wording until the owner confirms their own. Originals and prints have different return wording."
+  },
+  "owner": {
+    "sign_in": "One owner, from environment configuration. The email and password hash are supplied when the store is deployed.",
+    "areas": [
+      "works (the catalog): fields, status, price, options, images, series, published and order",
+      "series",
+      "about page",
+      "exhibitions and press",
+      "commission inquiries",
+      "home page intro line",
+      "email signups list"
+    ]
+  },
+  "storage": {
+    "database": "Postgres (Neon when deployed)",
+    "photos": "A storage adapter: local disk for development, Vercel Blob when deployed"
+  },
+  "stack": "See the Builder's knowledge/stack.json. Those decisions are fixed.",
+  "not_in_this_version": [
+    "Shopper accounts, login, 'Your orders' and wishlist",
+    "Real payments",
+    "Sending email",
+    "Paying a deposit for a commission",
+    "Auctions or offers"
+  ],
+  "assumptions": [
+    "The artist, all works, series, exhibitions and press entries are fictional samples.",
+    "Cart, checkout, order confirmation and the owner's order handling keep the usual store shape; only the catalog presentation and the home page change.",
+    "A work and a product are the same record."
+  ]
+}
