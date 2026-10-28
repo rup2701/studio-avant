@@ -97,6 +97,8 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
   const saleStatus = String(formData.get("saleStatus") ?? "available");
   const personalizationEnabled = formData.get("personalizationEnabled") === "on";
   const maxLenRaw = String(formData.get("personalizationMaxLength") ?? "40").trim();
+  const showOnHome = formData.get("showOnHome") === "on";
+  const featureOnHome = showOnHome && formData.get("featureOnHome") === "on";
 
   if (!name) errors.name = "Please enter a title for the work.";
   else if (name.length > 80) errors.name = "The title can be 80 characters at most.";
@@ -214,6 +216,8 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
     saleStatus,
     personalizationEnabled,
     personalizationMaxLength: maxLen,
+    showOnHome,
+    featureOnHome,
     updatedAt: new Date(),
   };
 
@@ -221,10 +225,17 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
   await db.transaction(async (tx) => {
     if (!workId) {
       const [{ m }] = await tx.select({ m: sql<number>`coalesce(max(${products.position}), -1)::int` }).from(products);
-      const [row] = await tx.insert(products).values({ ...values, position: m + 1, published: false }).returning({ id: products.id });
+      const [hp] = await tx.select({ m: sql<number>`coalesce(max(${products.homePosition}), -1)::int` }).from(products);
+      const [row] = await tx.insert(products).values({ ...values, position: m + 1, homePosition: hp.m + 1, published: false }).returning({ id: products.id });
       workId = row.id;
     } else {
-      await tx.update(products).set(values).where(eq(products.id, workId));
+      // A work newly put on the home page goes to the end of the home order.
+      const extra: { homePosition?: number } = {};
+      if (showOnHome && !existing?.showOnHome) {
+        const [hp] = await tx.select({ m: sql<number>`coalesce(max(${products.homePosition}), -1)::int` }).from(products);
+        extra.homePosition = hp.m + 1;
+      }
+      await tx.update(products).set({ ...values, ...extra }).where(eq(products.id, workId));
     }
     // Sync options by id so cart lines that reference existing values stay valid.
     const existingOpts = await tx.select().from(productOptions).where(eq(productOptions.productId, workId!));
@@ -510,6 +521,58 @@ export async function saveHome(formData: FormData) {
   if (intro.length > 200) back("/admin/home", "err", `The intro line can be 200 characters at most (it is ${intro.length}).`, { introLine: intro });
   await setSetting("introLine", intro);
   back("/admin/home", "msg", "Saved the intro line. It now shows at the top of the home page.");
+}
+
+/** One row of the home-images list: save show/feature, or move the work up or down in the home order. */
+export async function saveHomeWork(formData: FormData) {
+  await guard();
+  const id = String(formData.get("id") ?? "");
+  const intent = String(formData.get("intent") ?? "save");
+  const [w] = await db.select().from(products).where(eq(products.id, id));
+  if (!w) back("/admin/home", "err", "That work no longer exists.");
+  if (intent === "up" || intent === "down") {
+    const rows = await db
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.showOnHome, true))
+      .orderBy(asc(products.homePosition), asc(products.position), asc(products.createdAt));
+    const i = rows.findIndex((r) => r.id === id);
+    const j = intent === "up" ? i - 1 : i + 1;
+    if (i !== -1 && j >= 0 && j < rows.length) {
+      [rows[i], rows[j]] = [rows[j], rows[i]];
+      for (const [pos, r] of rows.entries()) await db.update(products).set({ homePosition: pos }).where(eq(products.id, r.id));
+    }
+    redirect("/admin/home#home-images");
+  }
+  const show = formData.get("showOnHome") === "on";
+  const feature = show && formData.get("featureOnHome") === "on";
+  const set: { showOnHome: boolean; featureOnHome: boolean; homePosition?: number } = { showOnHome: show, featureOnHome: feature };
+  if (show && !w.showOnHome) {
+    const [hp] = await db.select({ m: sql<number>`coalesce(max(${products.homePosition}), -1)::int` }).from(products);
+    set.homePosition = hp.m + 1;
+  }
+  await db.update(products).set(set).where(eq(products.id, id));
+  back("/admin/home", "msg", `Saved “${w.name}” for the home page.`);
+}
+
+const wordsSchema = z.object({
+  wordsText: z.string().max(5000, "The words block can be 5000 characters at most."),
+  wordsImageAlt: z.string().trim().max(200, "The image description can be 200 characters at most."),
+});
+
+export async function saveWords(formData: FormData) {
+  await guard();
+  const parsed = wordsSchema.safeParse({ wordsText: String(formData.get("wordsText") ?? ""), wordsImageAlt: String(formData.get("wordsImageAlt") ?? "") });
+  if (!parsed.success) back("/admin/home", "err", parsed.error.issues[0].message);
+  await setSetting("wordsText", parsed.data.wordsText.trim());
+  await setSetting("wordsImageAlt", parsed.data.wordsImageAlt);
+  back("/admin/home", "msg", "Saved the words block. It shows on the home page below the images.");
+}
+
+export async function removeWordsImage() {
+  await guard();
+  await setSetting("wordsImageUrl", "");
+  redirect("/admin/home?msg=" + encodeURIComponent("Image removed from the words block."));
 }
 
 export async function saveFollowLinks(formData: FormData) {

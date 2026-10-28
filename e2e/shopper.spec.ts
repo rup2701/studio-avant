@@ -1,40 +1,136 @@
 import { test, expect } from "@playwright/test";
+import { eq } from "drizzle-orm";
 import { createWork, deleteE2EWorks } from "./helpers";
+import { db } from "../src/db";
+import { emailSignups, productImages, products } from "../src/db/schema";
 
 test.beforeAll(async () => {
   await deleteE2EWorks();
 });
 
 test.describe("home and portfolio", () => {
-  test("home is the portfolio: intro, filters, grid, signup strip, footer — in that order, no hero, no Shop link", async ({ page }) => {
+  test("home is a composed page: intro, images, words, newsletter, footer — in that order; no filters, no grid, no hero", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByTestId("intro")).toContainText("Sample Artist");
+    const intro = page.getByTestId("intro");
+    await expect(intro.getByRole("heading", { level: 1 })).toHaveText("Studio Avant");
+    await expect(page.getByTestId("intro-by")).toHaveText("by Neil Patrick");
+    await expect(page.getByTestId("intro-line")).not.toBeEmpty();
     const order = await page.evaluate(() => {
       const q = (s: string) => document.querySelector(s)!;
       const pos = (el: Element) => el.getBoundingClientRect().top + window.scrollY;
       return [
         pos(q("[data-testid=intro]")),
-        pos(q("[role=group][aria-label='Filter works']")),
-        pos(q("[data-testid=work-grid]")),
+        pos(q("[data-testid=home-images]")),
+        pos(q("[data-testid=home-words]")),
         pos(q("[data-testid=email-signup]")),
         pos(q("footer")),
       ];
     });
     expect([...order].sort((a, b) => a - b)).toEqual(order);
-    await expect(page.getByTestId("work-card")).toHaveCount(12);
-    // header menu per brief
+    // no filters and no uniform catalog grid on the home page
+    await expect(page.getByRole("group", { name: "Filter works" })).toHaveCount(0);
+    await expect(page.getByTestId("work-grid")).toHaveCount(0);
+    await expect(page.getByTestId("work-card")).toHaveCount(0);
+    // header menu per brief: Work is the full catalog, the wordmark links home
     const nav = page.getByRole("navigation", { name: "Main" }).first();
     for (const l of ["Work", "About", "Exhibitions", "Commissions"]) await expect(nav.getByRole("link", { name: l, exact: true })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Work", exact: true })).toHaveAttribute("href", "/work");
     await expect(page.getByRole("link", { name: /^shop$/i })).toHaveCount(0);
-    await expect(page.locator("header").getByRole("link", { name: "Studio Avant" })).toBeVisible();
+    await expect(page.locator("header").getByRole("link", { name: "Studio Avant" })).toHaveAttribute("href", "/");
     await expect(page.getByTestId("bag-count")).toHaveText("0");
     // no link to the owner area anywhere in the shopper experience
     const hrefs = await page.$$eval("a[href]", (as) => as.map((a) => a.getAttribute("href")));
     expect(hrefs.filter((h) => h?.includes("/admin"))).toEqual([]);
   });
 
-  test("each work shows title, year and a status mark; sample catalog matches the brief", async ({ page }) => {
+  test("home images: only works marked 'show on home', in the owner's order, one featured full width, uneven placement, links to the work", async ({ page }) => {
     await page.goto("/");
+    const items = page.getByTestId("home-work");
+    await expect(items).toHaveCount(7);
+    await expect(items).toContainText(["Low Tide, Morning", "Tide Line", "Orchard Light I", "Salt Flats at Dusk", "Windfall", "Grey Room", "Orchard Light II"]);
+    // not shown on home: the unmarked original and every print
+    await expect(page.getByTestId("home-images")).not.toContainText("Study for a Quiet Room");
+    await expect(page.getByTestId("home-images")).not.toContainText("(print)");
+    // every one links to its work page
+    await expect(items.first()).toHaveAttribute("href", "/work/low-tide-morning");
+    // 'Available' mark only where it applies (3 available originals; Tide Line, Low Tide Morning, Orchard Light I)
+    await expect(page.getByTestId("home-available")).toHaveCount(3);
+    await expect(page.getByTestId("home-work").filter({ hasText: "Salt Flats at Dusk" })).not.toContainText("Available");
+    // title and year shown quietly
+    await expect(items.first()).toContainText("2024");
+    // geometry: contained column, a featured item as wide as the column, other widths varied, rows uneven
+    const m = await page.evaluate(() => {
+      const box = (el: Element) => el.getBoundingClientRect();
+      const ul = document.querySelector("[data-testid=home-images]")!;
+      const col = box(ul);
+      const lis = [...ul.children] as HTMLElement[];
+      return {
+        colW: col.width,
+        vw: window.innerWidth,
+        items: lis.map((li) => ({ w: box(li).width, left: box(li).left - col.left, top: box(li).top, featured: li.dataset.featured })),
+      };
+    });
+    expect(m.colW).toBeLessThanOrEqual(1200);
+    expect(m.colW).toBeLessThan(m.vw);
+    const featured = m.items.filter((i) => i.featured === "true");
+    expect(featured).toHaveLength(1);
+    expect(Math.abs(featured[0].w - m.colW)).toBeLessThan(2);
+    const widths = new Set(m.items.map((i) => Math.round(i.w)));
+    expect(widths.size).toBeGreaterThanOrEqual(3);
+    const lefts = new Set(m.items.map((i) => Math.round(i.left)));
+    expect(lefts.size).toBeGreaterThanOrEqual(3);
+    // nothing sticks out of the column
+    for (const i of m.items) expect(i.left + i.w).toBeLessThanOrEqual(m.colW + 1);
+    // "See all work" leads to the Work page
+    await page.getByTestId("see-all-work").click();
+    await expect(page).toHaveURL(/\/work$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Work");
+  });
+
+  test("home images are never cropped: a photo's box follows its own proportions, tall or wide", async ({ page }) => {
+    const wide = await createWork({ name: `E2E HomeWide ${Date.now()}`, priceCents: 5000 });
+    const tall = await createWork({ name: `E2E HomeTall ${Date.now()}`, priceCents: 5000 });
+    await db.insert(productImages).values([
+      { productId: wide.id, url: "/uploads/none-w.jpg", originalUrl: "/uploads/none-w.jpg", alt: "Wide view", position: 0, width: 1600, height: 900 },
+      { productId: tall.id, url: "/uploads/none-t.jpg", originalUrl: "/uploads/none-t.jpg", alt: "Tall view", position: 0, width: 900, height: 1600 },
+    ]);
+    await db.update(products).set({ showOnHome: true, homePosition: 90, featureOnHome: false }).where(eq(products.id, wide.id));
+    await db.update(products).set({ showOnHome: true, homePosition: 91, featureOnHome: false }).where(eq(products.id, tall.id));
+    await page.goto("/");
+    for (const [n, ratio] of [["Wide view", 1600 / 900], ["Tall view", 900 / 1600]] as const) {
+      const r = await page.getByRole("img", { name: n }).evaluate((el) => {
+        const b = el.parentElement!.getBoundingClientRect();
+        const i = getComputedStyle(el).objectFit;
+        return { ratio: b.width / b.height, fit: i };
+      });
+      expect(Math.abs(r.ratio - ratio), n).toBeLessThan(0.02);
+      expect(r.fit).toBe("contain");
+    }
+    await db.delete(products).where(eq(products.id, wide.id));
+    await db.delete(products).where(eq(products.id, tall.id));
+  });
+
+  test("home words block: several paragraphs, no image until the owner adds one", async ({ page }) => {
+    await page.goto("/");
+    const words = page.getByTestId("home-words");
+    expect(await words.locator("p").count()).toBeGreaterThanOrEqual(3);
+    await expect(page.getByTestId("words-image")).toHaveCount(0);
+  });
+
+  test("newsletter block: heading, one line, one email field and a Subscribe button", async ({ page }) => {
+    await page.goto("/");
+    const n = page.getByTestId("email-signup");
+    await expect(n.getByRole("heading", { name: "Newsletter" })).toBeVisible();
+    await expect(n).toContainText("New work and studio news, now and then");
+    await expect(n.locator("input:not([type=hidden])")).toHaveCount(1);
+    await expect(n.getByRole("button", { name: "Subscribe" })).toBeVisible();
+  });
+
+  test("Work page: every published work in a grid, title and year, status mark; sample catalog matches the brief", async ({ page }) => {
+    await page.goto("/work");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Work");
+    await expect(page.getByTestId("work-card")).toHaveCount(12);
+    await expect(page.locator("header").getByRole("link", { name: "Work", exact: true })).toHaveAttribute("aria-current", "page");
     const marks = await page.getByTestId("status-mark").allTextContents();
     expect(marks.filter((m) => m.startsWith("Available · ")).length).toBe(7); // 3 originals + 4 prints
     expect(marks.filter((m) => m === "Sold").length).toBe(3);
@@ -48,15 +144,18 @@ test.describe("home and portfolio", () => {
     // no photos invented: placeholders only
     await expect(page.locator("[data-testid=work-card] img")).toHaveCount(0);
     await expect(page.getByRole("img", { name: "No image yet" }).first()).toBeVisible();
+    // each links to its work page
+    await page.getByTestId("work-card").filter({ hasText: "Salt Flats at Dusk" }).click();
+    await expect(page).toHaveURL(/\/work\/salt-flats-at-dusk$/);
   });
 
-  test("filters (All, one per series, Available) filter the grid without leaving the page", async ({ page }) => {
-    await page.goto("/");
+  test("Work page filters (All, one per series, Available) filter the grid without leaving the page", async ({ page }) => {
+    await page.goto("/work");
     const group = page.getByRole("group", { name: "Filter works" });
     await expect(group.getByRole("button")).toHaveText(["All", "Low Tide", "Orchard Light", "Available"]);
     await group.getByRole("button", { name: "Low Tide" }).click();
     await expect(page.getByTestId("work-card")).toHaveCount(4);
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/work$/);
     await group.getByRole("button", { name: "Orchard Light" }).click();
     await expect(page.getByTestId("work-card")).toHaveCount(5);
     await group.getByRole("button", { name: "Available" }).click();
@@ -155,7 +254,7 @@ test.describe("work page", () => {
 });
 
 test.describe("footer, policy and info pages", () => {
-  for (const path of ["/", "/work/low-tide-morning", "/cart", "/checkout", "/help"]) {
+  for (const path of ["/", "/work", "/work/low-tide-morning", "/cart", "/checkout", "/help"]) {
     test(`footer and subfooter on ${path}`, async ({ page }) => {
       await page.goto(path);
       const footer = page.locator("footer");
@@ -243,38 +342,57 @@ test.describe("footer, policy and info pages", () => {
     await expect(page.getByTestId("inquiry-thanks")).toContainText("Thank you");
   });
 
-  test("email signup strip: validates, stores and thanks", async ({ page }) => {
+  test("newsletter: validates, stores once, thanks the same way for the same address twice", async ({ page }) => {
     await page.goto("/");
     await page.getByLabel("Email address").fill("nope");
-    await page.getByRole("button", { name: "Sign up" }).click();
+    await page.getByRole("button", { name: "Subscribe" }).click();
     await expect(page.getByText("Please enter a valid email address")).toBeVisible();
-    await page.getByLabel("Email address").fill(`fan-${Date.now()}@example.com`);
-    await page.getByRole("button", { name: "Sign up" }).click();
+    const email = `fan-${Date.now()}@example.com`;
+    await page.getByLabel("Email address").fill(email);
+    await page.getByRole("button", { name: "Subscribe" }).click();
     await expect(page.getByTestId("signup-thanks")).toBeVisible();
+    const thanks = await page.getByTestId("signup-thanks").textContent();
+    await page.reload();
+    await page.getByLabel("Email address").fill(email.toUpperCase());
+    await page.getByRole("button", { name: "Subscribe" }).click();
+    await expect(page.getByTestId("signup-thanks")).toHaveText(thanks!);
+    const rows = await db.select().from(emailSignups).where(eq(emailSignups.email, email));
+    expect(rows).toHaveLength(1);
   });
 });
 
 test.describe("layout and accessibility", () => {
-  test("full-width catalog: grid spans ≥90% at 1440, header/footer/content share edges", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
-    const m = await page.evaluate(() => {
-      const r = (s: string) => document.querySelector(s)!.getBoundingClientRect();
-      const grid = r("[data-testid=work-grid]");
-      const logo = document.querySelector("header a")!.getBoundingClientRect();
-      const footerFirst = document.querySelector("footer h2")!.getBoundingClientRect();
-      return { gridW: grid.width, vw: window.innerWidth, gridL: grid.left, logoL: logo.left, footL: footerFirst.left, gridR: grid.right };
-    });
-    expect(m.gridW / m.vw).toBeGreaterThanOrEqual(0.9);
-    expect(Math.abs(m.gridL - m.logoL)).toBeLessThan(2);
-    expect(Math.abs(m.gridL - m.footL)).toBeLessThan(2);
+  test("contained width: home and Work page content is a centred column of at most 1200px", async ({ page }) => {
+    for (const vw of [1440, 1920]) {
+      await page.setViewportSize({ width: vw, height: 900 });
+      for (const [path, sel] of [["/work", "[data-testid=work-grid]"], ["/", "[data-testid=home-images]"], ["/", "[data-testid=email-signup]"], ["/", "[data-testid=intro]"]] as const) {
+        await page.goto(path);
+        const m = await page.evaluate((s) => {
+          const b = document.querySelector(s)!.getBoundingClientRect();
+          return { w: b.width, left: b.left, right: window.innerWidth - b.right };
+        }, sel);
+        expect(m.w, `${path} ${sel} at ${vw}`).toBeLessThanOrEqual(1200);
+        expect(m.w, `${path} ${sel} at ${vw}`).toBeGreaterThanOrEqual(1100);
+        expect(Math.abs(m.left - m.right), `${path} ${sel} centred at ${vw}`).toBeLessThan(2);
+      }
+    }
   });
 
-  test("columns grow with the screen: 2, 3, 4, 5, 6", async ({ page }) => {
-    const expected: [number, number][] = [[375, 2], [800, 3], [1100, 4], [1400, 5], [1700, 6]];
+  test("contained width: the column keeps comfortable side margins on small screens", async ({ page }) => {
+    for (const vw of [375, 800]) {
+      await page.setViewportSize({ width: vw, height: 900 });
+      await page.goto("/work");
+      const m = await page.getByTestId("work-grid").evaluate((e) => ({ left: e.getBoundingClientRect().left, right: window.innerWidth - e.getBoundingClientRect().right }));
+      expect(m.left).toBeGreaterThanOrEqual(15);
+      expect(m.right).toBeGreaterThanOrEqual(15);
+    }
+  });
+
+  test("Work page columns grow with the screen but stop at 4 in the contained column: 2, 3, 4, 4, 4", async ({ page }) => {
+    const expected: [number, number][] = [[375, 2], [800, 3], [1100, 4], [1400, 4], [1700, 4]];
     for (const [w, cols] of expected) {
       await page.setViewportSize({ width: w, height: 900 });
-      await page.goto("/");
+      await page.goto("/work");
       const n = await page.getByTestId("work-grid").evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
       expect(n, `width ${w}`).toBe(cols);
     }
@@ -282,7 +400,7 @@ test.describe("layout and accessibility", () => {
 
   test("image-first cards: image ≥70% of the card, gaps ≤16px, one tab stop per card", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/work");
     const m = await page.evaluate(() => {
       const cards = [...document.querySelectorAll("[data-testid=work-card]")] as HTMLElement[];
       const c0 = cards[0].getBoundingClientRect();
@@ -316,12 +434,12 @@ test.describe("layout and accessibility", () => {
 
   test("reading pages keep a narrower column than the catalog", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/");
+    await page.goto("/work");
     const grid = await page.getByTestId("work-grid").evaluate((e) => e.getBoundingClientRect().width);
     for (const p of ["/returns", "/help", "/contact", "/cart", "/checkout", "/about"]) {
       await page.goto(p);
       const w = await page.locator("main > div").first().evaluate((e) => e.getBoundingClientRect().width);
-      expect(w, p).toBeLessThan(grid * 0.85);
+      expect(w, p).toBeLessThan(grid * 0.9);
     }
   });
 

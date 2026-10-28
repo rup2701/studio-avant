@@ -7,7 +7,7 @@ import { store } from "@/config/store";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Work" },
+  { href: "/work", label: "Work" },
   { href: "/about", label: "About" },
   { href: "/exhibitions", label: "Exhibitions" },
   { href: "/commissions", label: "Commissions" },
@@ -19,7 +19,7 @@ export function SiteHeader() {
   const { count } = useCart();
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" || pathname.startsWith("/work/") || pathname.startsWith("/series/") || pathname.startsWith("/category/") : pathname.startsWith(href);
+    href === "/work" ? pathname.startsWith("/work") || pathname.startsWith("/series/") || pathname.startsWith("/category/") : pathname.startsWith(href);
 
   return (
     <header className="border-b border-border bg-background">

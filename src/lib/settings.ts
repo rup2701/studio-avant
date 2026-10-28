@@ -9,6 +9,10 @@ export type SiteSettings = {
   bio: string;
   portraitUrl: string | null;
   portraitAlt: string;
+  /** Home page "words" block: paragraphs separated by a blank line. */
+  wordsText: string;
+  wordsImageUrl: string | null;
+  wordsImageAlt: string;
   followLinks: { label: string; url: string }[];
 };
 
@@ -27,6 +31,9 @@ export async function getSettings(): Promise<SiteSettings> {
     bio: m.get("bio") ?? store.defaults.bio,
     portraitUrl: m.get("portraitUrl") || null,
     portraitAlt: m.get("portraitAlt") ?? store.defaults.portraitAlt,
+    wordsText: m.get("wordsText") ?? store.defaults.wordsText,
+    wordsImageUrl: m.get("wordsImageUrl") || null,
+    wordsImageAlt: m.get("wordsImageAlt") ?? "",
     followLinks: follow,
   };
 }

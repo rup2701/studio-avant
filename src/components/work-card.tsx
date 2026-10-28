@@ -63,9 +63,16 @@ export function WorkCardItem({ work, priority = false }: { work: Work; priority?
   );
 }
 
-export function WorkGridList({ works }: { works: Work[] }) {
+export function WorkGridList({ works, contained = false }: { works: Work[]; contained?: boolean }) {
   return (
-    <ul className="grid grid-cols-2 items-start gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" data-testid="work-grid">
+    <ul
+      className={
+        contained
+          ? "grid grid-cols-2 items-start gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4"
+          : "grid grid-cols-2 items-start gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+      }
+      data-testid="work-grid"
+    >
       {works.map((w, i) => (
         <WorkCardItem key={w.id} work={w} priority={i < 4} />
       ))}

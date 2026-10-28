@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { count } from "drizzle-orm";
+import { count, eq, inArray } from "drizzle-orm";
 import { db, pool } from "../src/db";
 import {
   categories,
@@ -8,6 +8,7 @@ import {
   productOptions,
   products,
   series,
+  settings,
 } from "../src/db/schema";
 import { slugify } from "../src/lib/utils";
 
@@ -37,6 +38,8 @@ async function main() {
   await db.delete(series);
   await db.delete(categories);
   await db.delete(exhibitions);
+  // Home page content goes back to the sample wording (the artist, intro lines and words block).
+  await db.delete(settings).where(inArray(settings.key, ["artistName", "introLine", "wordsText", "wordsImageUrl", "wordsImageAlt"]));
 
   const [cOrig, cPrints] = await db
     .insert(categories)
@@ -110,6 +113,15 @@ async function main() {
     origRows.push({ id: row.id, name: row.name });
   }
   const byName = (n: string) => origRows.find((o) => o.name === n)!;
+
+  // Home page: seven originals show on home, in this order; Orchard Light I is featured full width.
+  const homeOrder = ["Low Tide, Morning", "Tide Line", "Orchard Light I", "Salt Flats at Dusk", "Windfall", "Grey Room", "Orchard Light II"];
+  for (const [i, n] of homeOrder.entries()) {
+    await db
+      .update(products)
+      .set({ showOnHome: true, featureOnHome: n === "Orchard Light I", homePosition: i })
+      .where(eq(products.id, byName(n).id));
+  }
 
   type Print = {
     name: string;

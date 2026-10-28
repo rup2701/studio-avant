@@ -47,6 +47,9 @@ export type WorkCard = {
   coverAlt: string;
   coverWidth: number;
   coverHeight: number;
+  /** Size text such as "30 × 40 in"; used to shape the placeholder until a photo exists. */
+  sizeInches: string;
+  featureOnHome: boolean;
 };
 
 async function coversFor(ids: string[]) {
@@ -92,6 +95,8 @@ async function toCards(rows: ProductRow[]): Promise<WorkCard[]> {
       coverAlt: c?.alt ?? r.name,
       coverWidth: c?.width || 4,
       coverHeight: c?.height || 5,
+      sizeInches: r.sizeInches,
+      featureOnHome: r.featureOnHome,
     };
   });
 }
@@ -105,6 +110,16 @@ export async function listPublishedWorks(filter?: { categoryId?: string; seriesI
     .from(products)
     .where(and(...conds))
     .orderBy(asc(products.position), asc(products.createdAt));
+  return toCards(rows);
+}
+
+/** Published works the owner marked "show on home", in the owner's home order. */
+export async function listHomeWorks() {
+  const rows = await db
+    .select()
+    .from(products)
+    .where(and(eq(products.published, true), eq(products.showOnHome, true)))
+    .orderBy(asc(products.homePosition), asc(products.position), asc(products.createdAt));
   return toCards(rows);
 }
 

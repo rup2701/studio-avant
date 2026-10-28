@@ -2,13 +2,13 @@ import { test, expect, type Page } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import sharp from "sharp";
 import { adminLogin, createWork, deleteE2EWorks, image, OWNER_EMAIL, OWNER_PASSWORD, postCheckout, checkoutBody, CUSTOMER, uniq, getWorkBySlugDb } from "./helpers";
 import { db } from "../src/db";
 import { storageStatus, getStorage } from "../src/lib/storage";
 import { assertStorageReady } from "../src/lib/startup-check";
-import { categories, loginAttempts, productImages, products, systemEvents } from "../src/db/schema";
+import { categories, emailSignups, loginAttempts, productImages, products, settings, systemEvents } from "../src/db/schema";
 
 test.beforeAll(async () => {
   await deleteE2EWorks();
@@ -187,14 +187,14 @@ test.describe("works list", () => {
     }
   });
 
-  test("owner can reorder works and the home grid follows", async ({ page }) => {
+  test("owner can reorder works and the Work page grid follows", async ({ page }) => {
     await adminLogin(page);
     const rows = page.getByTestId("work-row");
     const firstName = await rows.nth(0).getByTestId("work-link").textContent();
     const secondName = await rows.nth(1).getByTestId("work-link").textContent();
     await page.getByRole("button", { name: `Move ${firstName} down` }).click();
     await expect(rows.nth(0).getByTestId("work-link")).toHaveText(secondName!);
-    await page.goto("/");
+    await page.goto("/work");
     await expect(page.getByTestId("work-card").first()).toContainText(secondName!);
     await page.goto("/admin");
     await page.getByRole("button", { name: `Move ${firstName} up` }).click();
@@ -539,7 +539,7 @@ test.describe("categories, series and pages", () => {
     await expect(page.getByTestId("flash-message")).toContainText("Deleted the category");
   });
 
-  test("series: add, edit and delete; the series page and home filters follow", async ({ page }) => {
+  test("series: add, edit and delete; the series page follows", async ({ page }) => {
     await adminLogin(page);
     const title = `E2E Series ${uniq()}`;
     await page.goto("/admin/series");
@@ -599,14 +599,14 @@ test.describe("categories, series and pages", () => {
     await expect(page.getByTestId("intro")).toContainText("Maren Test");
     // restore defaults for later tests
     await page.goto("/admin/about");
-    await page.getByLabel("Artist's name").fill("Sample Artist");
+    await page.getByLabel("Artist's name").fill("Neil Patrick");
     await page.getByRole("button", { name: "Save About page" }).click();
     await page.getByRole("button", { name: "Remove portrait" }).click();
     await page.goto("/admin/home");
     await page.getByLabel("Label 1").fill("Instagram");
     await page.getByLabel("Web address 1").fill("https://example.com/instagram");
     await page.getByRole("button", { name: "Save links" }).click();
-    await page.getByLabel("Intro line (200 characters at most)").fill("A painter's work, shown quietly. Original paintings and limited prints, each one available from its page.");
+    await page.getByLabel("Intro line (200 characters at most)").fill("Quiet, considered paintings of tide flats and old orchards, and a few limited prints of them. Each available work can be bought from its page.");
     await page.getByRole("button", { name: "Save intro line" }).click();
   });
 
@@ -646,7 +646,7 @@ test.describe("categories, series and pages", () => {
     const signup = `${uniq("fan")}@example.com`;
     await s.goto("/");
     await s.getByLabel("Email address").fill(signup);
-    await s.getByRole("button", { name: "Sign up" }).click();
+    await s.getByRole("button", { name: "Subscribe" }).click();
     await expect(s.getByTestId("signup-thanks")).toBeVisible();
     await anon.close();
     await adminLogin(page);
@@ -695,5 +695,160 @@ test.describe("storage and status", () => {
     await page.getByRole("link", { name: "See what happened" }).click();
     await expect(page.getByTestId("events")).toContainText("no order was created");
     await db.delete(systemEvents).where(eq(systemEvents.id, ev.id));
+  });
+});
+
+test.describe("home page and newsletter (owner)", () => {
+  test("owner chooses which works show on home, features one, reorders them, and the home page follows; drafts never show", async ({ page }) => {
+    const a = await createWork({ name: `E2E HomeA ${uniq()}` });
+    const b = await createWork({ name: `E2E HomeB ${uniq()}` });
+    const draft = await createWork({ name: `E2E HomeDraft ${uniq()}`, published: false });
+    try {
+      await adminLogin(page);
+      await page.goto("/admin/home");
+      const rowFor = (n: string) => page.getByTestId("home-work-row").filter({ hasText: n });
+      for (const w of [a, b]) {
+        const row = rowFor(w.name);
+        await expect(row).toHaveAttribute("data-shown", "false");
+        await row.getByLabel(`Show on home: ${w.name}`).check();
+        if (w === b) await row.getByLabel(`Feature full width: ${w.name}`).check();
+        await row.getByRole("button", { name: `Save ${w.name}` }).click();
+        await expect(page.getByTestId("flash-message")).toContainText(`Saved “${w.name}” for the home page.`);
+      }
+      await rowFor(draft.name).getByLabel(`Show on home: ${draft.name}`).check();
+      await rowFor(draft.name).getByRole("button", { name: `Save ${draft.name}` }).click();
+      await expect(page.getByTestId("flash-message")).toContainText("for the home page");
+
+      // shopper: A then B (each goes to the end), B full width of the column, the draft is not shown
+      await page.goto("/");
+      const items = page.getByTestId("home-work");
+      await expect(items).toHaveCount(9);
+      await expect(items.nth(7)).toContainText(a.name);
+      await expect(items.nth(8)).toContainText(b.name);
+      await expect(page.getByText(draft.name)).toHaveCount(0);
+      const widths = await page.evaluate((nm) => {
+        const col = document.querySelector("[data-testid=home-images]")!.getBoundingClientRect().width;
+        const li = [...document.querySelectorAll("[data-testid=home-work]")].find((e) => e.textContent!.includes(nm))!.closest("li")!;
+        return { col, w: li.getBoundingClientRect().width, featured: li.dataset.featured };
+      }, b.name);
+      expect(widths.featured).toBe("true");
+      expect(Math.abs(widths.w - widths.col)).toBeLessThan(2);
+
+      // reorder: move B earlier
+      await page.goto("/admin/home");
+      await Promise.all([
+        page.waitForResponse((r) => r.request().method() === "POST" && r.url().includes("/admin/home")),
+        page.getByRole("button", { name: `Move ${b.name} earlier on home` }).click(),
+      ]);
+      await page.goto("/");
+      await expect(items.nth(7)).toContainText(b.name);
+      await expect(items.nth(8)).toContainText(a.name);
+
+      // un-tick: the work leaves the home page but stays on the Work page
+      await page.goto("/admin/home");
+      await rowFor(a.name).getByLabel(`Show on home: ${a.name}`).uncheck();
+      await rowFor(a.name).getByRole("button", { name: `Save ${a.name}` }).click();
+      await expect(page.getByTestId("flash-message")).toContainText("for the home page");
+      await page.goto("/");
+      await expect(page.getByTestId("home-images").getByText(a.name)).toHaveCount(0);
+      await page.goto("/work");
+      await expect(page.getByTestId("work-card").filter({ hasText: a.name })).toHaveCount(1);
+    } finally {
+      for (const w of [a, b, draft]) await db.delete(products).where(eq(products.id, w.id));
+    }
+  });
+
+  test("the work form has Show on home and Feature on home, and saves them", async ({ page }) => {
+    const w = await createWork({ name: `E2E HomeForm ${uniq()}` });
+    try {
+      await adminLogin(page);
+      await page.goto(`/admin/works/${w.id}`);
+      await page.getByLabel("Show on home", { exact: true }).check();
+      await page.getByLabel(/^Feature on home/).check();
+      await page.getByTestId("save-work").click();
+      await expect(page.getByTestId("save-message")).toContainText("Saved");
+      const [row] = await db.select().from(products).where(eq(products.id, w.id));
+      expect(row.showOnHome).toBe(true);
+      expect(row.featureOnHome).toBe(true);
+      await page.reload();
+      await expect(page.getByLabel("Show on home", { exact: true })).toBeChecked();
+    } finally {
+      await db.delete(products).where(eq(products.id, w.id));
+    }
+  });
+
+  test("words block and its optional image are owner editable", async ({ page }) => {
+    const p1 = `First paragraph ${uniq()}.`;
+    const p2 = `Second paragraph ${uniq()}.`;
+    await adminLogin(page);
+    await page.goto("/admin/home");
+    await page.getByLabel("Words (5000 characters at most)").fill(`${p1}\n\n${p2}`);
+    await page.getByRole("button", { name: "Save words" }).click();
+    await expect(page.getByTestId("flash-message")).toContainText("Saved the words block");
+    await page.goto("/");
+    const words = page.getByTestId("home-words");
+    await expect(words.locator("p")).toHaveText([p1, p2]);
+    await expect(page.getByTestId("words-image")).toHaveCount(0);
+    // too long is refused with a message
+    await page.goto("/admin/home");
+    await page.getByLabel("Words (5000 characters at most)").fill("x".repeat(5001));
+    await page.getByRole("button", { name: "Save words" }).click();
+    await expect(page.getByTestId("flash-error")).toContainText("5000 characters");
+    // image beside the words
+    await page.goto("/admin/home");
+    await page.getByLabel("Description of the image beside the words (for screen readers)").fill("The studio window");
+    await page.getByRole("button", { name: "Save words" }).click();
+    await expect(page.getByTestId("flash-message")).toContainText("Saved the words block");
+    await page.setInputFiles("#words-image-file", { ...(await image(900, 1100)), name: "words.jpg" });
+    await expect(page.getByText("Image saved.")).toBeVisible();
+    await page.goto("/");
+    const img = page.getByTestId("words-image");
+    await expect(img).toBeVisible();
+    await expect(img).toHaveAttribute("alt", "The studio window");
+    const src = await img.getAttribute("src");
+    expect((await page.request.get(src!)).status()).toBe(200);
+    // remove the image again; the words stay
+    await page.goto("/admin/home");
+    await page.getByRole("button", { name: "Remove the image" }).click();
+    await expect(page.getByTestId("flash-message")).toContainText("Image removed");
+    await page.goto("/");
+    await expect(page.getByTestId("words-image")).toHaveCount(0);
+    await expect(words.locator("p")).toHaveText([p1, p2]);
+    // back to the sample words for later tests
+    await db.delete(settings).where(inArray(settings.key, ["wordsText", "wordsImageAlt", "wordsImageUrl"]));
+  });
+
+  test("newsletter subscribers: owner sees them newest first and downloads a CSV; the CSV is closed to the public", async ({ page, browser }) => {
+    const older = `${uniq("older")}@example.com`;
+    const newer = `${uniq("newer")}@example.com`;
+    await db.insert(emailSignups).values([
+      { email: older, createdAt: new Date("2030-01-01T10:00:00Z") },
+      { email: newer, createdAt: new Date("2030-01-02T10:00:00Z") },
+    ]);
+    try {
+      await adminLogin(page);
+      await page.goto("/admin/signups");
+      const rows = await page.getByTestId("signup-row").allTextContents();
+      const iNew = rows.findIndex((r) => r.includes(newer));
+      const iOld = rows.findIndex((r) => r.includes(older));
+      expect(iNew).toBeGreaterThanOrEqual(0);
+      expect(iNew).toBeLessThan(iOld);
+      const [dl] = await Promise.all([page.waitForEvent("download"), page.getByTestId("signups-csv").click()]);
+      expect(dl.suggestedFilename()).toBe("newsletter-subscribers.csv");
+      const text = fs.readFileSync((await dl.path())!, "utf8");
+      const lines = text.trim().split(/\r?\n/);
+      expect(lines[0]).toBe("email,subscribed_at");
+      expect(lines.findIndex((l) => l.includes(newer))).toBeLessThan(lines.findIndex((l) => l.includes(older)));
+      expect(text).toContain(`"${older}","2030-01-01T10:00:00.000Z"`);
+      // signed out: refused
+      const anon = await browser.newContext({ baseURL: "http://localhost:3100" });
+      const res = await anon.request.get("/api/admin/signups");
+      expect(res.status()).toBe(401);
+      expect(await res.text()).not.toContain(older);
+      await anon.close();
+    } finally {
+      await db.delete(emailSignups).where(eq(emailSignups.email, older));
+      await db.delete(emailSignups).where(eq(emailSignups.email, newer));
+    }
   });
 });

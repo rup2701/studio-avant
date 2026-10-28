@@ -88,6 +88,13 @@ body {
   margin-left: auto;
   margin-right: auto;
 }
+/* Contained column for the home page and the Work page: about 1200px, centred. Used inside .page-x. */
+.contained {
+  width: 100%;
+  max-width: 75rem;
+  margin-left: auto;
+  margin-right: auto;
+}
 .reading {
   width: 100%;
   max-width: 42rem;

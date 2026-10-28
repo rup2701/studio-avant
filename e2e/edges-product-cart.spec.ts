@@ -281,7 +281,7 @@ test("a work with photos shows its cover on the card and every photo on the work
   await page.goto(`/work/${w.slug}`);
   await expect(page.getByTestId("work-images").getByRole("img")).toHaveCount(2);
   await expect(page.getByRole("img", { name: "Second view" })).toBeVisible();
-  await page.goto("/");
+  await page.goto("/work");
   const card = page.getByTestId("work-card").filter({ hasText: w.name });
   await expect(card.getByRole("img", { name: "First view" })).toHaveAttribute("src", "/uploads/none-1.jpg");
   // uncropped: the image box follows the photo's own proportions

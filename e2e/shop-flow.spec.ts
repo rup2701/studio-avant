@@ -7,7 +7,7 @@ import { execFileSync } from "node:child_process";
 
 test("journey: discover, configure, add, review cart, checkout, confirmation", async ({ page }) => {
   const email = `${uniq("journey")}@example.com`;
-  await page.goto("/");
+  await page.goto("/work");
   await page.getByTestId("work-card").filter({ hasText: "Orchard Path (print)" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Orchard Path (print)");
   await page.getByText("12 × 16 in").click();

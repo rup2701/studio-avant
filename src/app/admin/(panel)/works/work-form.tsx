@@ -27,6 +27,8 @@ export type WorkValues = {
   saleStatus: string;
   personalizationEnabled: boolean;
   personalizationMaxLength: string;
+  showOnHome: boolean;
+  featureOnHome: boolean;
   options: OptionInput[];
 };
 
@@ -320,6 +322,19 @@ export function WorkForm(p: Props) {
           <p className="mt-1 text-xs text-muted-foreground">{values.note.length} / 2000</p>
           {err("note")}
         </div>
+
+        <fieldset className="lg:col-span-2 border border-border p-4">
+          <legend className="px-1 text-sm font-medium">Home page</legend>
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input type="checkbox" name="showOnHome" checked={values.showOnHome} onChange={(e) => set("showOnHome", e.target.checked)} className="h-5 w-5" />
+            Show on home
+          </label>
+          <label className="flex min-h-11 items-center gap-2 text-sm">
+            <input type="checkbox" name="featureOnHome" checked={values.featureOnHome} onChange={(e) => set("featureOnHome", e.target.checked)} className="h-5 w-5" />
+            Feature on home (shown full width of the column)
+          </label>
+          <p className="text-xs text-muted-foreground">Only published works appear on the home page. Set the order on the Home &amp; links page.</p>
+        </fieldset>
 
         <fieldset className="lg:col-span-2 border border-border p-4">
           <legend className="px-1 text-sm font-medium">Personalization (optional)</legend>

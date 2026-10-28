@@ -44,6 +44,8 @@ export default async function EditWorkPage({
     saleStatus: p.saleStatus,
     personalizationEnabled: p.personalizationEnabled,
     personalizationMaxLength: String(p.personalizationMaxLength),
+    showOnHome: p.showOnHome,
+    featureOnHome: p.featureOnHome && p.showOnHome,
     options: options.map((o) => ({
       uid: o.id,
       id: o.id,

@@ -27,11 +27,13 @@ export const store = {
   acceptedPayments: ["Visa", "Mastercard", "American Express", "PayPal", "Apple Pay"],
   personalizationCharset: "Letters, numbers, spaces and & . , ' - only",
   defaults: {
-    introLine: "A painter's work, shown quietly. Original paintings and limited prints, each one available from its page.",
-    artistName: "Sample Artist",
+    introLine: "Quiet, considered paintings of tide flats and old orchards, and a few limited prints of them. Each available work can be bought from its page.",
+    wordsText:
+      "I paint what is left once the noise of a place has settled: the line a tide leaves on sand, the way light rests in an old orchard in the late afternoon. The paintings are slow and built in thin layers of oil, and I stop when the picture goes quiet.\n\nMost of the work begins outdoors, with a notebook and a few small studies made on the spot. Back in the studio those studies are set aside, and I paint from memory of how the place felt rather than how it looked.\n\nTwo series run through the work at the moment: Low Tide, made on the flats near the studio, and Orchard Light, a single autumn spent in one old orchard. (Sample wording; the owner replaces it in the owner area.)",
+    artistName: "Neil Patrick",
     statement:
       "I paint what is left once the noise of a place has settled: the line a tide leaves on sand, the way light rests in an old orchard in the late afternoon. I work slowly, in layers, and I stop when the picture goes quiet.\n\nThis is sample wording. The owner replaces it from the owner area.",
-    bio: "Sample Artist lives and works in a small studio by the water. Their paintings have been shown in group and solo exhibitions and are held in private collections. (Fictional sample biography.)",
+    bio: "Neil Patrick lives and works in a small studio by the water. Their paintings have been shown in group and solo exhibitions and are held in private collections. (Fictional sample biography.)",
     portraitAlt: "Portrait of the artist (placeholder until a photo is uploaded)",
     followLinks: [
       { label: "Instagram", url: "https://example.com/instagram" },
@@ -40,6 +42,9 @@ export const store = {
     ] as { label: string; url: string }[],
   },
 } as const;
+
+/** Newsletter strip on the home page (fixed copy). */
+export const NEWSLETTER_LINE = "New work and studio news, now and then";
 
 export const SALE_STATUSES = [
   { value: "available", label: "Available" },

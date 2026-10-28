@@ -4,17 +4,19 @@ import { subscribeEmail, type FormState } from "@/app/actions/public";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NEWSLETTER_LINE } from "@/config/store";
 
 const initial: FormState = { ok: false };
 
+/** The newsletter block on the home page: heading, one line, one email field, Subscribe. */
 export function EmailSignup() {
   const [state, action, pending] = useActionState(subscribeEmail, initial);
   return (
-    <section aria-labelledby="signup-heading" className="mt-20 border-y border-border bg-muted/60" data-testid="email-signup">
-      <div className="wide page-x grid gap-4 py-10 md:grid-cols-2 md:items-center">
+    <section aria-labelledby="signup-heading" className="border-y border-border py-12 md:py-16" data-testid="email-signup">
+      <div className="grid gap-5 md:grid-cols-2 md:items-center">
         <div>
-          <h2 id="signup-heading" className="font-serif text-2xl">New work, once in a while</h2>
-          <p className="mt-1 text-muted-foreground">Leave your email and you will be on the list for new paintings and prints. Nothing is sent in this demo.</p>
+          <h2 id="signup-heading" className="font-serif text-2xl md:text-3xl">Newsletter</h2>
+          <p className="mt-1 text-muted-foreground">{NEWSLETTER_LINE}</p>
         </div>
         {state.ok ? (
           <p role="status" className="font-medium" data-testid="signup-thanks">{state.message}</p>
@@ -39,7 +41,7 @@ export function EmailSignup() {
                 <p role="alert" className="mt-1 text-sm text-destructive">{state.message}</p>
               )}
             </div>
-            <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Sign up"}</Button>
+            <Button type="submit" disabled={pending}>{pending ? "Saving…" : "Subscribe"}</Button>
           </form>
         )}
       </div>

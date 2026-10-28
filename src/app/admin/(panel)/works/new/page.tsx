@@ -27,6 +27,8 @@ export default async function NewWorkPage() {
     saleStatus: "available",
     personalizationEnabled: false,
     personalizationMaxLength: "40",
+    showOnHome: false,
+    featureOnHome: false,
     options: [],
   };
   return (

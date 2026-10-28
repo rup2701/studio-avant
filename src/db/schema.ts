@@ -59,6 +59,10 @@ export const products = pgTable("products", {
   /** available | sold | private_collection | not_for_sale */
   saleStatus: text("sale_status").notNull().default("available"),
   position: integer("position").notNull().default(0),
+  /** Home page: shown among the images, in homePosition order, optionally full width of the column. */
+  showOnHome: boolean("show_on_home").notNull().default(false),
+  featureOnHome: boolean("feature_on_home").notNull().default(false),
+  homePosition: integer("home_position").notNull().default(0),
   isSample: boolean("is_sample").notNull().default(false),
   personalizationEnabled: boolean("personalization_enabled").notNull().default(false),
   personalizationMaxLength: integer("personalization_max_length").notNull().default(40),

@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 type SeriesFilter = { id: string; title: string };
 
-/** The portfolio grid with filters that do not leave the page. */
+/** The Work page grid with filters that do not leave the page. */
 export function FilterableWorkGrid({ works, series }: { works: WorkCard[]; series: SeriesFilter[] }) {
   const [filter, setFilter] = useState<string>("all");
   const shown = works.filter((w) =>
@@ -41,7 +41,7 @@ export function FilterableWorkGrid({ works, series }: { works: WorkCard[]; serie
       {shown.length === 0 ? (
         <p className="py-12 text-muted-foreground">No works match this filter right now. Choose “All” to see everything.</p>
       ) : (
-        <WorkGridList works={shown} />
+        <WorkGridList works={shown} contained />
       )}
     </div>
   );
