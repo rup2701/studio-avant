@@ -50,6 +50,8 @@ export type WorkCard = {
   /** Size text such as "30 × 40 in"; used to shape the placeholder until a photo exists. */
   sizeInches: string;
   featureOnHome: boolean;
+  /** "About this work" text; only the work page and the home page use it. */
+  description: string;
 };
 
 async function coversFor(ids: string[]) {
@@ -97,6 +99,7 @@ async function toCards(rows: ProductRow[]): Promise<WorkCard[]> {
       coverHeight: c?.height || 5,
       sizeInches: r.sizeInches,
       featureOnHome: r.featureOnHome,
+      description: r.description,
     };
   });
 }

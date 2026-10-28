@@ -26,7 +26,7 @@ export default async function SeriesPage({ params }: Params) {
       {works.length === 0 ? (
         <p className="text-muted-foreground">There are no works from this series to show right now.</p>
       ) : (
-        <WorkGridList works={works} />
+        <WorkGridList works={works} fromSeries={s.slug} />
       )}
     </div>
   );

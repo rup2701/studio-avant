@@ -135,3 +135,28 @@ Choices where the brief was unclear:
 - One existing check was changed: "reading pages keep a narrower column than the catalog" compared against 85% of the old, wider grid; the catalog is now 1200px, and the cart page is 1024px, so I compare against 90% (still strictly narrower). The old check "grid spans at least 90% of the viewport and shares edges with header and footer" was replaced by the contained-width checks, because the brief now says the opposite.
 
 Not verified: no visual review in a browser (layout checked by measurements only); the home arrangement was only measured with the placeholder images and with two test photos, not with a full set of real photos; the home words image upload used the local storage adapter only (not Vercel Blob); the CSV was opened as text, not in a spreadsheet; mobile home layout was checked for overflow only.
+
+
+## Change: Work-page links, back link, Newsletter label, home prices and About this work
+
+What changed:
+
+- **Links to /work**: "Continue browsing" (bag and the add-to-cart message), "Browse the work" (empty bag, empty checkout), "Back to the work" (not-found pages, unknown-order page, order confirmation) and "Show all work" (category page) now go to `/work`.
+- **"← All work"** at the top of every work page (`data-testid=back-to-work`), going to `/work`. Series pages now link their cards as `/work/<slug>?from=<series>`; when the work belongs to that series the back link reads "← <series title>" and goes to the series page, and Previous/Next keep the `?from`. A wrong or unrelated `from` falls back to "← All work".
+- **Header "Work"**: it was already linked and marked current (`aria-current`) on `/work`, work, series and category pages; I added a heavier font weight to the current item so it is clearly highlighted, and added checks for `/work` and several work pages (desktop and the phone menu).
+- **Newsletter**: the admin navigation label, page title and heading are now "Newsletter" (URL `/admin/signups` and the CSV route unchanged). The owner test was updated to click the "Newsletter" nav link and check the heading.
+- **Home marks**: price where the work is for sale ("from" prefix only if option prices differ), "Sold" for sold (and sold-out) works, nothing for private-collection and not-for-sale works. The Work page grid marks are unchanged. The old `home-available` test id became `home-mark`.
+- **About this work**: new `products.description` column (text, default empty), applied with `npm run db:push` as before (this project has no `drizzle/` migrations folder, so I did not create one). Editable in the work form (2000 characters at most), shown in full under the details on the work page with the heading "About this work", and as an excerpt under the title line on the home page. Excerpt rule (`excerpt()` in `src/lib/utils.ts`): first sentence; if over 140 characters, cut at a word with an ellipsis so the total is at most 140. Not shown on the Work, series or category grids. Each of the 12 sample works has a one-to-three-sentence description in the seed.
+- **Tests**: new `e2e/work-links-descriptions.spec.ts` (links, back link incl. series, header current state, home marks, excerpt, grid without descriptions, full text on work page, sample descriptions, excerpt rule, owner editing/clearing/too-long). Existing tests that expected those links to land on `/` now expect `/work`; the home Available-count check became a price/Sold check.
+
+Choices where the brief was unclear:
+
+- The existing "Short note" field stays as it was (still shown on the work page); "About this work" is a separate new field. Nothing was migrated from the note.
+- "Came from a series" is detected from the link the visitor used (`?from=`), not from the browser referrer, because the referrer is unreliable with client-side navigation. A visitor arriving from the home page, Work page, a bookmark or a category sees "← All work".
+- The "Back to the work" link on the not-found pages was also pointed at /work.
+- "Sold" on home also covers a work with stock 0 ("sold out").
+- On a phone the header menu is still behind the "Menu" button; I did not add a permanent Work link there.
+
+Not verified: no visual review in a browser; the excerpt was tested with the sample text, a synthetic long sentence and one owner-edited work, not with real photos or long real descriptions; the back link was tested after Next/Previous and on a series page but not with the browser back button.
+
+Results: `npx tsc --noEmit` exit 0; `npm run build` exit 0; `npx playwright test --reporter=dot`: 121 passed (the first run had 1 failure, a test locator that matched both "Orchard Light I" and "Orchard Light II"; fixed in the test, then 121/121 once).

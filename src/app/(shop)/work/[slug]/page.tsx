@@ -8,7 +8,7 @@ import { WorkPurchase } from "@/components/work-purchase";
 import { Placeholder, WorkGridList } from "@/components/work-card";
 import { formatMoney } from "@/lib/utils";
 
-type Params = { params: Promise<{ slug: string }> };
+type Params = { params: Promise<{ slug: string }>; searchParams?: Promise<{ from?: string | string[] }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
@@ -16,13 +16,17 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return { title: w ? w.product.name : "Work not found" };
 }
 
-export default async function WorkPage({ params }: Params) {
+export default async function WorkPage({ params, searchParams }: Params) {
   const { slug } = await params;
+  const fromRaw = (await searchParams)?.from;
   const owner = await isOwner();
   const work = await getWorkBySlug(slug, { includeDraft: owner });
   if (!work) notFound();
   const { product: p, images, options, category, series, original, prints } = work;
   const av = availabilityOf(p);
+  // Came from a series page (the link carries ?from=<series slug>): the back link returns there.
+  const cameFromSeries = series && typeof fromRaw === "string" && fromRaw === series.slug ? series : null;
+  const keep = cameFromSeries ? `?from=${encodeURIComponent(cameFromSeries.slug)}` : "";
   const { prev, next } = p.published ? await getNeighbours({ id: p.id, seriesId: p.seriesId }) : { prev: null, next: null };
 
   const details: [string, React.ReactNode][] = [];
@@ -39,6 +43,15 @@ export default async function WorkPage({ params }: Params) {
           Draft preview: only you can see this page while you are signed in as the owner. Shoppers get “not found”.
         </p>
       )}
+      <p className="mb-4 text-sm">
+        <Link
+          href={cameFromSeries ? `/series/${cameFromSeries.slug}` : "/work"}
+          className="inline-flex min-h-11 items-center underline underline-offset-4 hover:text-accent"
+          data-testid="back-to-work"
+        >
+          {cameFromSeries ? `← ${cameFromSeries.title}` : "← All work"}
+        </Link>
+      </p>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:gap-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,28rem)]">
         <div className="space-y-4" data-testid="work-images">
           {images.length === 0 ? (
@@ -75,6 +88,13 @@ export default async function WorkPage({ params }: Params) {
           </dl>
 
           {p.note && <p className="mt-5 whitespace-pre-line text-base">{p.note}</p>}
+
+          {p.description.trim() && (
+            <section aria-labelledby="about-work" className="mt-6" data-testid="about-work">
+              <h2 id="about-work" className="font-serif text-xl">About this work</h2>
+              <p className="mt-2 whitespace-pre-line text-base leading-relaxed">{p.description}</p>
+            </section>
+          )}
 
           {original && (
             <p className="mt-4 text-sm">
@@ -122,10 +142,10 @@ export default async function WorkPage({ params }: Params) {
           {(prev || next) && (
             <nav aria-label={series ? `More from ${series.title}` : "More work"} className="mt-8 flex justify-between gap-4 border-t border-border pt-4 text-sm">
               {prev ? (
-                <Link href={`/work/${prev.slug}`} rel="prev" className="min-h-11 hover:text-accent">← Previous<span className="sr-only">: {prev.name}</span></Link>
+                <Link href={`/work/${prev.slug}${keep}`} rel="prev" className="min-h-11 hover:text-accent">← Previous<span className="sr-only">: {prev.name}</span></Link>
               ) : <span />}
               {next ? (
-                <Link href={`/work/${next.slug}`} rel="next" className="min-h-11 text-right hover:text-accent">Next →<span className="sr-only">: {next.name}</span></Link>
+                <Link href={`/work/${next.slug}${keep}`} rel="next" className="min-h-11 text-right hover:text-accent">Next →<span className="sr-only">: {next.name}</span></Link>
               ) : <span />}
             </nav>
           )}

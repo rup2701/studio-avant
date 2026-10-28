@@ -633,7 +633,7 @@ test.describe("categories, series and pages", () => {
     await expect(page.getByText(text)).toHaveCount(0);
   });
 
-  test("commission inquiries and email sign-ups are stored and visible to the owner", async ({ page, browser }) => {
+  test("commission inquiries and newsletter sign-ups are stored and visible to the owner", async ({ page, browser }) => {
     const anon = await browser.newContext({ baseURL: "http://localhost:3100" });
     const s = await anon.newPage();
     const email = `${uniq("patron")}@example.com`;
@@ -652,7 +652,10 @@ test.describe("categories, series and pages", () => {
     await adminLogin(page);
     await page.goto("/admin/inquiries");
     await expect(page.getByTestId("inquiry-row").filter({ hasText: email })).toContainText("A diptych of the harbour");
-    await page.goto("/admin/signups");
+    await page.getByRole("navigation", { name: "Owner area" }).getByRole("link", { name: "Newsletter" }).click();
+    await expect(page).toHaveURL(/\/admin\/signups$/);
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Newsletter");
+    await expect(page.getByRole("navigation", { name: "Owner area" }).getByRole("link", { name: "Email sign-ups" })).toHaveCount(0);
     await expect(page.getByTestId("signup-row").filter({ hasText: signup })).toBeVisible();
   });
 });
@@ -828,6 +831,8 @@ test.describe("home page and newsletter (owner)", () => {
     try {
       await adminLogin(page);
       await page.goto("/admin/signups");
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Newsletter");
+      await expect(page.getByRole("heading", { level: 1 })).not.toContainText("Email sign-ups");
       const rows = await page.getByTestId("signup-row").allTextContents();
       const iNew = rows.findIndex((r) => r.includes(newer));
       const iOld = rows.findIndex((r) => r.includes(older));

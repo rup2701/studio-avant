@@ -33,3 +33,15 @@ export function parsePriceToCents(input: string): number | null {
 export function centsToInput(cents: number | null | undefined) {
   return cents == null ? "" : (cents / 100).toFixed(2);
 }
+
+/** First sentence of a longer text, at most `max` characters (cut at a word with an ellipsis when the sentence is longer). */
+export function excerpt(text: string, max = 140) {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (!t) return "";
+  const m = t.match(/^.+?[.!?]+(?=\s|$)/);
+  const first = m ? m[0] : t;
+  if (first.length <= max) return first;
+  const cut = first.slice(0, max - 1);
+  const sp = cut.lastIndexOf(" ");
+  return (sp > max * 0.5 ? cut.slice(0, sp) : cut).replace(/[\s,;:.!?-]+$/, "") + "…";
+}

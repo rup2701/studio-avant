@@ -269,7 +269,7 @@ export function WorkPurchase(p: Props) {
             {msg.kind === "success" && (
               <p className="mt-2 flex flex-wrap gap-4">
                 <Link href="/cart" className={buttonVariants({ size: "sm" })}>View your bag</Link>
-                <Link href="/" className={buttonVariants({ size: "sm", variant: "outline" })}>Continue browsing</Link>
+                <Link href="/work" className={buttonVariants({ size: "sm", variant: "outline" })}>Continue browsing</Link>
               </p>
             )}
           </div>

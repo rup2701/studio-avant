@@ -6,14 +6,14 @@ import { Flash } from "@/components/flash";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { deleteSignup } from "../../actions";
 
-export const metadata: Metadata = { title: "Email sign-ups" };
+export const metadata: Metadata = { title: "Newsletter" };
 
 export default async function SignupsPage({ searchParams }: { searchParams: Promise<{ msg?: string; err?: string }> }) {
   const sp = await searchParams;
   const rows = await db.select().from(emailSignups).orderBy(desc(emailSignups.createdAt));
   return (
     <div className="max-w-2xl">
-      <h1 className="font-serif text-3xl">Email sign-ups <span className="text-lg text-muted-foreground">({rows.length})</span></h1>
+      <h1 className="font-serif text-3xl">Newsletter <span className="text-lg text-muted-foreground">({rows.length})</span></h1>
       <p className="mt-1 text-sm text-muted-foreground">Newsletter subscribers, newest first: addresses left in the Newsletter block on the home page. Nothing is sent from this store.</p>
       <div className="mt-4"><Flash msg={sp.msg} err={sp.err} /></div>
       {rows.length === 0 ? (

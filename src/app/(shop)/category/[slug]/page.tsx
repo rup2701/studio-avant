@@ -27,7 +27,7 @@ export default async function CategoryPage({ params }: Params) {
         <p className="text-sm text-muted-foreground">Category</p>
         <h1 className="font-serif text-3xl md:text-4xl">{found.category.name}</h1>
         <p className="mt-2 text-sm">
-          <Link href="/" className="underline underline-offset-4 hover:text-accent">Show all work</Link>
+          <Link href="/work" className="underline underline-offset-4 hover:text-accent">Show all work</Link>
         </p>
       </header>
       <WorkGridList works={works} />

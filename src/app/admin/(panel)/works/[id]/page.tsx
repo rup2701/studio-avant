@@ -33,6 +33,7 @@ export default async function EditWorkPage({
     name: p.name,
     slug: p.slug,
     note: p.note,
+    description: p.description,
     price: centsToInput(p.priceCents),
     categoryId: p.categoryId,
     seriesId: p.seriesId ?? "",

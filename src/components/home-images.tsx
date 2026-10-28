@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { WorkCard } from "@/lib/queries";
+import { formatMoney, excerpt } from "@/lib/utils";
 import { Placeholder } from "./work-card";
 
 /**
@@ -23,12 +24,21 @@ function placeholderAspect(size: string) {
   return m ? `${m[1]} / ${m[2]}` : "4 / 5";
 }
 
+/** Home mark: the price when the work is for sale, "Sold" when sold, nothing otherwise. */
+function homeMark(w: WorkCard) {
+  if (w.availability === "available" && w.priceCents != null) return `${w.fromPrice ? "from " : ""}${formatMoney(w.priceCents)}`;
+  if (w.availability === "sold" || w.availability === "sold_out") return "Sold";
+  return null;
+}
+
 export function HomeImages({ works }: { works: WorkCard[] }) {
   let slot = 0;
   return (
     <ul className="grid grid-cols-12 items-start gap-x-4 gap-y-14 md:gap-x-6 md:gap-y-24" data-testid="home-images">
       {works.map((w, i) => {
         const featured = w.featureOnHome;
+        const mark = homeMark(w);
+        const blurb = excerpt(w.description);
         const cls = featured ? FEATURED : SLOTS[slot++ % SLOTS.length];
         return (
           <li key={w.id} className={`min-w-0 ${cls}`} data-featured={featured ? "true" : "false"}>
@@ -51,12 +61,17 @@ export function HomeImages({ works }: { works: WorkCard[] }) {
               <p className="pt-2 font-serif text-sm leading-snug text-muted-foreground group-hover:text-foreground group-hover:underline underline-offset-4">
                 {w.name}
                 {w.year ? `, ${w.year}` : ""}
-                {w.availability === "available" && (
-                  <span className="ml-2 font-sans text-xs text-accent" data-testid="home-available">
-                    Available
+                {mark && (
+                  <span className={`ml-2 font-sans text-xs ${w.availability === "available" ? "text-accent" : "text-muted-foreground"}`} data-testid="home-mark">
+                    {mark}
                   </span>
                 )}
               </p>
+              {blurb && (
+                <p className="pt-1 text-sm leading-snug text-muted-foreground" data-testid="home-excerpt">
+                  {blurb}
+                </p>
+              )}
             </Link>
           </li>
         );

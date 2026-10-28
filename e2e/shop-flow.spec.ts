@@ -43,7 +43,7 @@ test("journey: discover, configure, add, review cart, checkout, confirmation", a
   await expect(item).toContainText("Size: 12 × 16 in, Paper: Textured cotton rag");
   await expect(page.getByTestId("order-total")).toHaveText("$87.00");
   await expect(page.getByTestId("order-address")).toContainText("12 Harbour Road");
-  await expect(page.getByRole("link", { name: "Back to the work" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to the work" })).toHaveAttribute("href", "/work");
   // the cart is cleared
   await expect(page.getByTestId("bag-count")).toHaveText("0");
   const dbOrders = await ordersByEmail(email);
@@ -79,7 +79,7 @@ test("E-021 an unknown order reference explains the format and leads back", asyn
   await expect(page.getByRole("heading", { name: "We couldn't find that order" })).toBeVisible();
   await expect(page.getByText("SA-")).toBeVisible();
   await page.getByRole("link", { name: "Back to the work" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/work$/);
 });
 
 test("E-026/E-027/E-028 defaults: confirmation says nothing ships and no email is sent; returns says to email the studio", async ({ page, request }) => {
@@ -98,7 +98,7 @@ test("E-014 checkout with an empty cart shows no form and a way to the shop", as
   await expect(page.getByTestId("checkout-empty")).toContainText("There's nothing to check out yet");
   await expect(page.getByTestId("checkout-form")).toHaveCount(0);
   await page.getByRole("link", { name: "Browse the work" }).click();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/work$/);
 });
 
 test("E-015 invalid checkout details: summary linking to fields, messages under fields, typed values kept", async ({ page }) => {

@@ -14,7 +14,7 @@ export function NotFoundContent({
       <div className="mt-4 text-muted-foreground">
         {children ?? <p>The link may be out of date, or the work may have been taken down. The portfolio is the best place to start again.</p>}
       </div>
-      <Link href="/" className={buttonVariants({ className: "mt-8" })}>
+      <Link href="/work" className={buttonVariants({ className: "mt-8" })}>
         Back to the work
       </Link>
     </div>

@@ -68,7 +68,7 @@ export default async function OrderPage({ params }: Params) {
         {order.email}
       </address>
 
-      <Link href="/" className={buttonVariants({ className: "mt-10" })}>Back to the work</Link>
+      <Link href="/work" className={buttonVariants({ className: "mt-10" })}>Back to the work</Link>
     </div>
   );
 }

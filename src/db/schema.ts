@@ -45,6 +45,8 @@ export const products = pgTable("products", {
   slug: text("slug").notNull().unique(),
   name: text("name").notNull(),
   note: text("note").notNull().default(""),
+  /** "About this work": optional longer description (shown in full on the work page, as an excerpt on home). */
+  description: text("description").notNull().default(""),
   priceCents: integer("price_cents"),
   categoryId: uuid("category_id")
     .notNull()

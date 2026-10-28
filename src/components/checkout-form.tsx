@@ -87,7 +87,7 @@ export function CheckoutForm() {
       <div className="py-12 text-center" data-testid="checkout-empty">
         <p className="font-serif text-2xl">There&apos;s nothing to check out yet</p>
         <p className="mt-2 text-muted-foreground">Your bag is empty. Find a work you love and add it first.</p>
-        <Link href="/" className={buttonVariants({ className: "mt-6" })}>Browse the work</Link>
+        <Link href="/work" className={buttonVariants({ className: "mt-6" })}>Browse the work</Link>
       </div>
     );
   }

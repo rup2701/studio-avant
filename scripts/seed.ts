@@ -67,6 +67,21 @@ async function main() {
     ])
     .returning();
 
+  const descriptions: Record<string, string> = {
+  "Low Tide, Morning": "Painted over three weeks on the flats at first light, when the sand is still wet and the sky sits in it like a second picture. The horizon is kept low and almost lost. Most of the work is in the greys.",
+  "Salt Flats at Dusk": "A wide view across the flats after the water has gone, with the last warm light caught in the salt. Made in the studio from small sketches done on site.",
+  "Orchard Light I": "Late sun through bare branches, long shadows laid across the grass. The first of two large canvases made in the same afternoon light. Built up slowly in thin layers of oil.",
+  "Orchard Light II": "The companion to the first large orchard canvas, painted a little later in the day, when the light turns orange and the shadows reach the wall.",
+  "Windfall": "A small panel of fruit left on the ground at the foot of one old tree. Quick, loose and painted in a single sitting.",
+  "Tide Line": "A small study of the line the water leaves behind. It was painted outdoors in under an hour, and kept almost exactly as it was first put down.",
+  "Grey Room": "An interior with the curtains half drawn and nobody in it. The paint is kept flat and quiet so that the room feels held still.",
+  "Study for a Quiet Room": "A drawing-like study on paper for a larger room painting that was never made. Kept by the painter and not for sale.",
+  "Low Tide, Morning (print)": "A giclée print of the original painting, made from a high-resolution scan of the canvas. Printed to order on archival paper in two sizes.",
+  "Orchard Light I (print)": "A giclée print of the large orchard canvas, with the soft gradations of the late light kept intact. Printed to order on archival paper.",
+  "Grey Room (print)": "A print of a painting that now lives in a private collection. It keeps the flat, quiet surface of the original.",
+  "Orchard Path (print)": "Made only as a print, from a pencil and watercolour drawing of the path through the orchard. There is no original painting."
+};
+
   type Orig = {
     name: string;
     year: number;
@@ -97,6 +112,7 @@ async function main() {
         slug: slugify(o.name),
         name: o.name,
         note: o.note,
+        description: descriptions[o.name] ?? "",
         priceCents: o.priceCents,
         categoryId: cOrig.id,
         seriesId: o.series ?? null,
@@ -181,6 +197,7 @@ async function main() {
         slug: slugify(p.name),
         name: p.name,
         note: p.note,
+        description: descriptions[p.name] ?? "",
         priceCents: p.basePrice,
         categoryId: cPrints.id,
         seriesId: p.series ?? null,

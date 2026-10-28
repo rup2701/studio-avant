@@ -37,7 +37,7 @@ export function SiteHeader() {
                   aria-current={isActive(n.href) ? "page" : undefined}
                   className={cn(
                     "inline-flex min-h-11 items-center border-b-2 text-sm tracking-wide hover:text-accent",
-                    isActive(n.href) ? "border-foreground" : "border-transparent",
+                    isActive(n.href) ? "border-foreground font-medium" : "border-transparent",
                   )}
                 >
                   {n.label}

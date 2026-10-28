@@ -24,11 +24,11 @@ export function statusMark(a: Availability, priceCents: number | null, fromPrice
   return saleStatusLabel(a);
 }
 
-export function WorkCardItem({ work, priority = false }: { work: Work; priority?: boolean }) {
+export function WorkCardItem({ work, priority = false, fromSeries }: { work: Work; priority?: boolean; fromSeries?: string }) {
   const mark = statusMark(work.availability, work.priceCents, work.fromPrice);
   return (
     <li className="min-w-0">
-      <Link href={`/work/${work.slug}`} className="group block" data-testid="work-card">
+      <Link href={fromSeries ? `/work/${work.slug}?from=${encodeURIComponent(fromSeries)}` : `/work/${work.slug}`} className="group block" data-testid="work-card">
         {work.coverUrl ? (
           <div className="w-full overflow-hidden bg-muted" style={{ aspectRatio: `${work.coverWidth} / ${work.coverHeight}` }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -63,7 +63,7 @@ export function WorkCardItem({ work, priority = false }: { work: Work; priority?
   );
 }
 
-export function WorkGridList({ works, contained = false }: { works: Work[]; contained?: boolean }) {
+export function WorkGridList({ works, contained = false, fromSeries }: { works: Work[]; contained?: boolean; fromSeries?: string }) {
   return (
     <ul
       className={
@@ -74,7 +74,7 @@ export function WorkGridList({ works, contained = false }: { works: Work[]; cont
       data-testid="work-grid"
     >
       {works.map((w, i) => (
-        <WorkCardItem key={w.id} work={w} priority={i < 4} />
+        <WorkCardItem key={w.id} work={w} priority={i < 4} fromSeries={fromSeries} />
       ))}
     </ul>
   );

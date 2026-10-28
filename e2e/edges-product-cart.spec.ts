@@ -117,7 +117,7 @@ test("E-005 unknown product URL: not-found with a path back", async ({ page }) =
   const res = await page.goto("/work/no-such-work-anywhere");
   expect(res?.status()).toBe(404);
   await expect(page.getByTestId("not-found")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Back to the work" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to the work" })).toHaveAttribute("href", "/work");
 });
 
 test("E-006 a bookmarked work that cannot be bought explains itself and has no buy button", async ({ page }) => {
@@ -215,7 +215,7 @@ test("E-009 quantity: minus disabled at 1, changes update line and subtotal, rem
   await expect(page.getByTestId("cart-line")).toHaveCount(1);
   await page.getByRole("button", { name: /Remove/ }).click();
   await expect(page.getByTestId("empty-cart")).toContainText("Your bag is empty");
-  await expect(page.getByRole("link", { name: "Browse the work" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Browse the work" })).toHaveAttribute("href", "/work");
 });
 
 test("E-010 when browser storage is blocked the cart still works for the visit and a notice says it won't be saved", async ({ page }) => {

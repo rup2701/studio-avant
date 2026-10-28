@@ -16,6 +16,7 @@ export type WorkValues = {
   name: string;
   slug: string;
   note: string;
+  description: string;
   price: string;
   categoryId: string;
   seriesId: string;
@@ -321,6 +322,13 @@ export function WorkForm(p: Props) {
           <Textarea id="note" name="note" rows={4} className="mt-1" value={values.note} onChange={(e) => set("note", e.target.value)} {...fieldProps("note")} />
           <p className="mt-1 text-xs text-muted-foreground">{values.note.length} / 2000</p>
           {err("note")}
+        </div>
+
+        <div className="lg:col-span-2">
+          <Label htmlFor="description">About this work (optional, 2000 characters at most)</Label>
+          <Textarea id="description" name="description" rows={6} className="mt-1" value={values.description} onChange={(e) => set("description", e.target.value)} {...fieldProps("description")} />
+          <p className="mt-1 text-xs text-muted-foreground">Shown in full on the work page; the first sentence is shown under the image on the home page. {values.description.length} / 2000</p>
+          {err("description")}
         </div>
 
         <fieldset className="lg:col-span-2 border border-border p-4">

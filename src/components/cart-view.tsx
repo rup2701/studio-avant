@@ -89,7 +89,7 @@ export function CartView() {
       <div className="py-12 text-center" data-testid="empty-cart">
         <p className="font-serif text-2xl">Your bag is empty</p>
         <p className="mt-2 text-muted-foreground">When you find a painting or print you love, it will wait for you here.</p>
-        <Link href="/" className={buttonVariants({ className: "mt-6" })}>Browse the work</Link>
+        <Link href="/work" className={buttonVariants({ className: "mt-6" })}>Browse the work</Link>
       </div>
     );
   }
@@ -190,7 +190,7 @@ export function CartView() {
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-sm"><Link href="/" className="underline underline-offset-4 hover:text-accent">Continue browsing</Link></p>
+        <p className="mt-4 text-sm"><Link href="/work" className="underline underline-offset-4 hover:text-accent">Continue browsing</Link></p>
       </div>
 
       <aside aria-labelledby="summary-heading" className="h-fit border border-border bg-muted/40 p-5">

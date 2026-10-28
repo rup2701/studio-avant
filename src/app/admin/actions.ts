@@ -86,6 +86,7 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
   const name = String(formData.get("name") ?? "").trim();
   let slug = String(formData.get("slug") ?? "").trim();
   const note = String(formData.get("note") ?? "");
+  const description = String(formData.get("description") ?? "");
   const priceRaw = String(formData.get("price") ?? "").trim();
   const categoryId = String(formData.get("categoryId") ?? "");
   const seriesId = String(formData.get("seriesId") ?? "") || null;
@@ -109,6 +110,8 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
     errors.slug = "Use lowercase letters, numbers and single hyphens only, for example “low-tide-morning”.";
 
   if (note.length > 2000) errors.note = `The note can be 2000 characters at most (it is ${note.length}).`;
+
+  if (description.length > 2000) errors.description = `The text can be 2000 characters at most (it is ${description.length}).`;
 
   let priceCents: number | null = null;
   if (priceRaw !== "") {
@@ -205,6 +208,7 @@ export async function saveWork(_prev: WorkFormState, formData: FormData): Promis
     slug,
     name,
     note,
+    description,
     priceCents,
     categoryId,
     seriesId,

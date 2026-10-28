@@ -53,9 +53,9 @@ test.describe("home and portfolio", () => {
     await expect(page.getByTestId("home-images")).not.toContainText("(print)");
     // every one links to its work page
     await expect(items.first()).toHaveAttribute("href", "/work/low-tide-morning");
-    // 'Available' mark only where it applies (3 available originals; Tide Line, Low Tide Morning, Orchard Light I)
-    await expect(page.getByTestId("home-available")).toHaveCount(3);
-    await expect(page.getByTestId("home-work").filter({ hasText: "Salt Flats at Dusk" })).not.toContainText("Available");
+    // price where the work is for sale (Low Tide Morning, Tide Line, Orchard Light I), "Sold" where sold, nothing else; never the word Available
+    await expect(page.getByTestId("home-mark")).toHaveCount(6);
+    await expect(page.getByTestId("home-images")).not.toContainText("Available");
     // title and year shown quietly
     await expect(items.first()).toContainText("2024");
     // geometry: contained column, a featured item as wide as the column, other widths varied, rows uneven
@@ -476,7 +476,7 @@ test.describe("layout and accessibility", () => {
     expect(res?.status()).toBe(404);
     await expect(page.getByTestId("not-found")).toContainText("couldn't find");
     await page.getByRole("link", { name: "Back to the work" }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/work$/);
   });
 
   test("a draft work is not found for shoppers", async ({ page }) => {

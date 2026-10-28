@@ -16,6 +16,7 @@ export default async function NewWorkPage() {
     name: "",
     slug: "",
     note: "",
+    description: "",
     price: "",
     categoryId: cats[0]?.id ?? "",
     seriesId: "",

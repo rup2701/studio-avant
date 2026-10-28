@@ -11,7 +11,7 @@ const LINKS = [
   { href: "/admin/about", label: "About page" },
   { href: "/admin/exhibitions", label: "Exhibitions & press" },
   { href: "/admin/inquiries", label: "Commission inquiries" },
-  { href: "/admin/signups", label: "Email sign-ups" },
+  { href: "/admin/signups", label: "Newsletter" },
   { href: "/admin/status", label: "Status" },
 ];
 
